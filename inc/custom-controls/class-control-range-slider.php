@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (class_exists('WP_Customize_Control')) {
+if (class_exists('WP_Customize_Control') && !class_exists('Imatutu_Range_Slider_Control')) {
     class Imatutu_Range_Slider_Control extends WP_Customize_Control {
         public $type = 'imatutu_range_slider';
         public $min  = 0;

@@ -20,15 +20,18 @@ require_once get_template_directory() . '/inc/customizer-layout-engine.php';
  * Load custom control classes when customize_register fires
  * (Ensures WP_Customize_Control is defined before extending it)
  */
-function imatutu_load_customizer_controls() {
-    require_once get_template_directory() . '/inc/custom-controls/class-control-range-slider.php';
-    require_once get_template_directory() . '/inc/custom-controls/class-control-palette-picker.php';
-    require_once get_template_directory() . '/inc/custom-controls/class-control-typography.php';
+if (!function_exists('imatutu_load_customizer_controls')) {
+    function imatutu_load_customizer_controls() {
+        require_once get_template_directory() . '/inc/custom-controls/class-control-range-slider.php';
+        require_once get_template_directory() . '/inc/custom-controls/class-control-palette-picker.php';
+        require_once get_template_directory() . '/inc/custom-controls/class-control-typography.php';
+    }
 }
 add_action('customize_register', 'imatutu_load_customizer_controls', 1);
 
-function imatutu_customize_register($wp_customize) {
-    imatutu_load_customizer_controls();
+if (!function_exists('imatutu_customize_register')) {
+    function imatutu_customize_register($wp_customize) {
+        imatutu_load_customizer_controls();
 
     // -------------------------------------------------------------
     // Main Customizer Panel
@@ -854,57 +857,61 @@ add_action('customize_register', 'imatutu_customize_register');
 /**
  * Enqueue script for real-time live preview in Customizer
  */
-function imatutu_customizer_live_preview() {
-    $preview_ver = file_exists(get_template_directory() . '/assets/js/customizer-preview.js')
-        ? filemtime(get_template_directory() . '/assets/js/customizer-preview.js')
-        : '2.0.0';
-    $builder_ver = file_exists(get_template_directory() . '/assets/js/builder-preview.js')
-        ? filemtime(get_template_directory() . '/assets/js/builder-preview.js')
-        : '2.0.0';
+if (!function_exists('imatutu_customizer_live_preview')) {
+    function imatutu_customizer_live_preview() {
+        $preview_ver = file_exists(get_template_directory() . '/assets/js/customizer-preview.js')
+            ? filemtime(get_template_directory() . '/assets/js/customizer-preview.js')
+            : '2.0.0';
+        $builder_ver = file_exists(get_template_directory() . '/assets/js/builder-preview.js')
+            ? filemtime(get_template_directory() . '/assets/js/builder-preview.js')
+            : '2.0.0';
 
-    wp_enqueue_script(
-        'imatutu-customizer-preview',
-        get_template_directory_uri() . '/assets/js/customizer-preview.js',
-        array('customize-preview', 'jquery'),
-        $preview_ver,
-        true
-    );
-    wp_enqueue_script(
-        'imatutu-builder-preview',
-        get_template_directory_uri() . '/assets/js/builder-preview.js',
-        array('customize-preview', 'jquery'),
-        $builder_ver,
-        true
-    );
+        wp_enqueue_script(
+            'imatutu-customizer-preview',
+            get_template_directory_uri() . '/assets/js/customizer-preview.js',
+            array('customize-preview', 'jquery'),
+            $preview_ver,
+            true
+        );
+        wp_enqueue_script(
+            'imatutu-builder-preview',
+            get_template_directory_uri() . '/assets/js/builder-preview.js',
+            array('customize-preview', 'jquery'),
+            $builder_ver,
+            true
+        );
+    }
 }
 add_action('customize_preview_init', 'imatutu_customizer_live_preview');
 
 /**
  * Enqueue scripts and styles for Customizer controls panel
  */
-function imatutu_customizer_controls_scripts() {
-    $controls_css_ver = file_exists(get_template_directory() . '/assets/css/customizer-controls.css')
-        ? filemtime(get_template_directory() . '/assets/css/customizer-controls.css')
-        : '2.0.0';
-    $controls_js_ver = file_exists(get_template_directory() . '/assets/js/customizer-controls.js')
-        ? filemtime(get_template_directory() . '/assets/js/customizer-controls.js')
-        : '2.0.0';
+if (!function_exists('imatutu_customizer_controls_scripts')) {
+    function imatutu_customizer_controls_scripts() {
+        $controls_css_ver = file_exists(get_template_directory() . '/assets/css/customizer-controls.css')
+            ? filemtime(get_template_directory() . '/assets/css/customizer-controls.css')
+            : '2.0.0';
+        $controls_js_ver = file_exists(get_template_directory() . '/assets/js/customizer-controls.js')
+            ? filemtime(get_template_directory() . '/assets/js/customizer-controls.js')
+            : '2.0.0';
 
-    wp_enqueue_style(
-        'imatutu-customizer-controls',
-        get_template_directory_uri() . '/assets/css/customizer-controls.css',
-        array(),
-        $controls_css_ver
-    );
-    wp_enqueue_script(
-        'imatutu-customizer-controls-js',
-        get_template_directory_uri() . '/assets/js/customizer-controls.js',
-        array('jquery', 'customize-controls'),
-        $controls_js_ver,
-        true
-    );
-    if (function_exists('imatutu_get_color_palettes')) {
-        wp_localize_script('imatutu-customizer-controls-js', 'imatutuPalettes', imatutu_get_color_palettes());
+        wp_enqueue_style(
+            'imatutu-customizer-controls',
+            get_template_directory_uri() . '/assets/css/customizer-controls.css',
+            array(),
+            $controls_css_ver
+        );
+        wp_enqueue_script(
+            'imatutu-customizer-controls-js',
+            get_template_directory_uri() . '/assets/js/customizer-controls.js',
+            array('jquery', 'customize-controls'),
+            $controls_js_ver,
+            true
+        );
+        if (function_exists('imatutu_get_color_palettes')) {
+            wp_localize_script('imatutu-customizer-controls-js', 'imatutuPalettes', imatutu_get_color_palettes());
+        }
     }
 }
 add_action('customize_controls_enqueue_scripts', 'imatutu_customizer_controls_scripts');
@@ -912,6 +919,8 @@ add_action('customize_controls_enqueue_scripts', 'imatutu_customizer_controls_sc
 /**
  * Helper to sanitize floating point numbers
  */
-function imatutu_sanitize_float($val) {
-    return floatval($val);
+if (!function_exists('imatutu_sanitize_float')) {
+    function imatutu_sanitize_float($val) {
+        return floatval($val);
+    }
 }

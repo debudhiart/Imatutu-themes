@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (class_exists('WP_Customize_Control')) {
+if (class_exists('WP_Customize_Control') && !class_exists('Imatutu_Typography_Control')) {
     class Imatutu_Typography_Control extends WP_Customize_Control {
         public $type = 'imatutu_typography';
 

@@ -9,10 +9,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function imatutu_register_builder_customizer($wp_customize) {
-    if (function_exists('imatutu_load_customizer_controls')) {
-        imatutu_load_customizer_controls();
-    }
+if (!function_exists('imatutu_register_builder_customizer')) {
+    function imatutu_register_builder_customizer($wp_customize) {
+        if (function_exists('imatutu_load_customizer_controls')) {
+            imatutu_load_customizer_controls();
+        }
 
     // -------------------------------------------------------------
     // Main Builder Panel
@@ -273,10 +274,18 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'default'           => '',
                 'sanitize_callback' => 'esc_url_raw',
             ));
-            $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, "{$col_prefix}_image_url", array(
-                'label'   => sprintf(esc_html__('Col %d: Image Upload', 'imatutu'), $c),
-                'section' => $sec_id,
-            )));
+            if (class_exists('WP_Customize_Image_Control')) {
+                $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, "{$col_prefix}_image_url", array(
+                    'label'   => sprintf(esc_html__('Col %d: Image Upload', 'imatutu'), $c),
+                    'section' => $sec_id,
+                )));
+            } else {
+                $wp_customize->add_control("{$col_prefix}_image_url", array(
+                    'label'   => sprintf(esc_html__('Col %d: Image URL', 'imatutu'), $c),
+                    'section' => $sec_id,
+                    'type'    => 'url',
+                ));
+            }
 
             $wp_customize->add_setting("{$col_prefix}_image_alt", array(
                 'default'           => 'Imatutu Corporate Visual',
@@ -624,6 +633,8 @@ add_action('customize_register', 'imatutu_register_builder_customizer', 30);
 /**
  * Sanitization helper for checkboxes
  */
-function imatutu_sanitize_checkbox($checked) {
-    return (isset($checked) && true === (bool) $checked);
+if (!function_exists('imatutu_sanitize_checkbox')) {
+    function imatutu_sanitize_checkbox($checked) {
+        return (isset($checked) && true === (bool) $checked);
+    }
 }
