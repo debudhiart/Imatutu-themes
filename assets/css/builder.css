@@ -1,0 +1,373 @@
+/**
+ * Imatutu Theme - Modular Layout Builder Stylesheet
+ *
+ * @package Imatutu
+ */
+
+/* ==========================================================================
+   Section Backgrounds & Paddings
+   ========================================================================== */
+.builder-section.bg-default_white {
+    background-color: var(--color-bg, #FFFFFF);
+    color: var(--color-text, #1E293B);
+}
+
+.builder-section.bg-soft_slate {
+    background-color: var(--color-bg-secondary, #F8FAFC);
+    color: var(--color-text, #1E293B);
+}
+
+.builder-section.bg-navy_dark {
+    background-color: var(--color-secondary, #0B192C);
+    color: #FFFFFF;
+}
+
+.builder-section.bg-navy_dark h1,
+.builder-section.bg-navy_dark h2,
+.builder-section.bg-navy_dark h3,
+.builder-section.bg-navy_dark h4,
+.builder-section.bg-navy_dark p,
+.builder-section.bg-navy_dark .builder-heading-text,
+.builder-section.bg-navy_dark .builder-body-text {
+    color: #FFFFFF;
+}
+
+.builder-section.bg-primary_tint {
+    background-color: var(--color-primary-light, #EBF2FE);
+    color: var(--color-text, #1E293B);
+}
+
+.builder-section.pad-small {
+    padding: 3rem 0;
+}
+
+.builder-section.pad-medium {
+    padding: 5.5rem 0;
+}
+
+.builder-section.pad-large {
+    padding: 8rem 0;
+}
+
+/* ==========================================================================
+   CSS Grid Engine
+   ========================================================================== */
+.builder-grid {
+    display: grid;
+    width: 100%;
+    gap: var(--builder-gap, 24px);
+}
+
+.builder-grid.valign-top {
+    align-items: start;
+}
+
+.builder-grid.valign-center {
+    align-items: center;
+}
+
+.builder-grid.valign-stretch {
+    align-items: stretch;
+}
+
+.grid-col-1 {
+    grid-template-columns: 1fr;
+}
+
+.grid-col-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-col-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-col-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-col-1-2 {
+    grid-template-columns: 1fr 2fr;
+}
+
+.grid-col-2-1 {
+    grid-template-columns: 2fr 1fr;
+}
+
+/* ==========================================================================
+   Component Specific Styles
+   ========================================================================== */
+.builder-component {
+    width: 100%;
+}
+
+/* Heading */
+.component-heading .builder-heading-text {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 0.5rem;
+}
+
+/* Paragraph */
+.component-paragraph .builder-body-text {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: inherit;
+    opacity: 0.9;
+}
+
+/* Image */
+.component-image .builder-image-frame {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -5px rgba(11, 25, 44, 0.08);
+}
+
+.component-image .builder-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+.component-image .builder-image-placeholder,
+.component-video .builder-video-placeholder {
+    border: 2px dashed #CBD5E1;
+    border-radius: 12px;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: #64748B;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Video */
+.builder-video-responsive.ratio-16-9 {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px -5px rgba(11, 25, 44, 0.12);
+}
+
+.builder-video-responsive iframe,
+.builder-video-responsive video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Button */
+.component-button .builder-btn {
+    display: inline-flex;
+    margin-top: 0.5rem;
+}
+
+/* Form */
+.builder-form-card {
+    background: #FFFFFF;
+    padding: 2.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-border, #E2E8F0);
+    box-shadow: 0 10px 30px -5px rgba(11, 25, 44, 0.06);
+    color: #1E293B;
+}
+
+.builder-form-placeholder {
+    text-align: center;
+    padding: 1.5rem 0;
+}
+
+.placeholder-icon {
+    color: var(--color-primary, #1559ED);
+    margin-bottom: 1rem;
+}
+
+.placeholder-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #0B192C;
+}
+
+.placeholder-text {
+    font-size: 0.875rem;
+    color: #64748B;
+}
+
+/* Form controls styling for WPForms */
+.builder-form-card .wpforms-field {
+    margin-bottom: 1.25rem;
+}
+
+.builder-form-card input[type="text"],
+.builder-form-card input[type="email"],
+.builder-form-card input[type="tel"],
+.builder-form-card textarea {
+    width: 100%;
+    padding: 0.85rem 1.15rem;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.builder-form-card input:focus,
+.builder-form-card textarea:focus {
+    outline: none;
+    border-color: var(--color-primary, #1559ED);
+    box-shadow: 0 0 0 3px rgba(21, 89, 237, 0.15);
+}
+
+.builder-form-card button[type="submit"],
+.builder-form-card .wpforms-submit {
+    background: var(--color-primary, #1559ED);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.85rem 2.25rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.builder-form-card button[type="submit"]:hover,
+.builder-form-card .wpforms-submit:hover {
+    background: var(--color-primary-dark, #0D45C2);
+    transform: translateY(-2px);
+}
+
+/* Iconbox */
+.builder-iconbox-card {
+    background: #FFFFFF;
+    border: 1px solid var(--color-border, #E2E8F0);
+    border-radius: 16px;
+    padding: 2.25rem;
+    box-shadow: 0 4px 16px -2px rgba(11, 25, 44, 0.04);
+    transition: all 0.25s ease;
+    height: 100%;
+}
+
+.builder-iconbox-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px -4px rgba(21, 89, 237, 0.12);
+    border-color: rgba(21, 89, 237, 0.3);
+}
+
+.iconbox-symbol {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--color-primary-light, #EBF2FE);
+    color: var(--color-primary, #1559ED);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+}
+
+.iconbox-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--color-secondary, #0B192C);
+}
+
+.iconbox-desc {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text-muted, #64748B);
+    margin: 0;
+}
+
+/* Counter */
+.builder-counter-card {
+    background: #FFFFFF;
+    border: 1px solid var(--color-border, #E2E8F0);
+    border-radius: 12px;
+    padding: 1.75rem;
+    text-align: center;
+}
+
+.builder-counter-val {
+    display: block;
+    font-size: 2.75rem;
+    font-weight: 800;
+    color: var(--color-primary, #1559ED);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.builder-counter-lbl {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-secondary, #0B192C);
+}
+
+/* Accordion */
+.builder-accordion-item {
+    border: 1px solid var(--color-border, #E2E8F0);
+    border-radius: 12px;
+    background: #FFFFFF;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+}
+
+.builder-accordion-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-secondary, #0B192C);
+    text-align: left;
+}
+
+.accordion-icon {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary, #1559ED);
+    transition: transform 0.2s;
+}
+
+.builder-accordion-body {
+    padding: 0 1.5rem 1.25rem 1.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text-muted, #64748B);
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 900px) {
+    .grid-col-3, .grid-col-4, .grid-col-1-2, .grid-col-2-1 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .builder-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .component-heading .builder-heading-text {
+        font-size: 1.75rem;
+    }
+    .builder-form-card {
+        padding: 1.5rem;
+    }
+}

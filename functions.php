@@ -88,28 +88,38 @@ function imatutu_scripts() {
         : '1.0.0';
     wp_enqueue_style('imatutu-main', get_template_directory_uri() . '/assets/css/main.css', array('imatutu-google-fonts'), $css_version);
 
+    // Builder CSS
+    $builder_css_version = file_exists(get_template_directory() . '/assets/css/builder.css')
+        ? filemtime(get_template_directory() . '/assets/css/builder.css')
+        : '1.0.0';
+    wp_enqueue_style('imatutu-builder', get_template_directory_uri() . '/assets/css/builder.css', array('imatutu-main'), $builder_css_version);
+
     // style.css for metadata and child theme compatibility
-    wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main'), '1.0.0');
+    wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main', 'imatutu-builder'), '1.0.0');
 
-    // Dynamic customizer styling
-    $primary_color   = get_theme_mod('primary_color', '#1559ED');
-    $secondary_color = get_theme_mod('secondary_color', '#0B192C');
-    $accent_color    = get_theme_mod('accent_color', '#E21F23');
-
-    $custom_css = "
-        :root {
-            --color-primary: " . esc_attr($primary_color) . ";
-            --color-secondary: " . esc_attr($secondary_color) . ";
-            --color-accent: " . esc_attr($accent_color) . ";
-        }
-    ";
-    wp_add_inline_style('imatutu-main', $custom_css);
+    // Dynamic customizer styling (Colors & Typography)
+    $custom_css = '';
+    if (function_exists('imatutu_get_color_css')) {
+        $custom_css .= imatutu_get_color_css();
+    }
+    if (function_exists('imatutu_get_typography_css')) {
+        $custom_css .= imatutu_get_typography_css();
+    }
+    if (!empty($custom_css)) {
+        wp_add_inline_style('imatutu-main', $custom_css);
+    }
 
     // Main Theme JavaScript
     $js_version = file_exists(get_template_directory() . '/assets/js/main.js') 
         ? filemtime(get_template_directory() . '/assets/js/main.js') 
         : '1.0.0';
     wp_enqueue_script('imatutu-script', get_template_directory_uri() . '/assets/js/main.js', array(), $js_version, true);
+
+    // Builder Frontend JavaScript
+    $builder_js_version = file_exists(get_template_directory() . '/assets/js/builder-frontend.js')
+        ? filemtime(get_template_directory() . '/assets/js/builder-frontend.js')
+        : '1.0.0';
+    wp_enqueue_script('imatutu-builder-js', get_template_directory_uri() . '/assets/js/builder-frontend.js', array(), $builder_js_version, true);
 
     if (is_singular() && comments_open() && get_option('thread_comments')) {
         wp_enqueue_script('comment-reply');
