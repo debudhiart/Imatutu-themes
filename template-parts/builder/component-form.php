@@ -14,11 +14,13 @@ if (empty($prefix)) {
     return;
 }
 
-$shortcode = get_theme_mod("{$prefix}_form_shortcode", '');
+$shortcode  = get_theme_mod("{$prefix}_form_shortcode", '');
+$card_style = get_theme_mod("{$prefix}_form_card_style", true);
+$wrap_class = $card_style ? 'builder-form-card' : 'builder-form-clean';
 ?>
 
 <div class="builder-component component-form">
-    <div class="builder-form-card">
+    <div class="<?php echo esc_attr($wrap_class); ?>">
         <?php if (!empty($shortcode)) : ?>
             <div class="form-render-area">
                 <?php echo do_shortcode(wp_kses_post($shortcode)); ?>

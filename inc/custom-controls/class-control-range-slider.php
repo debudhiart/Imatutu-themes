@@ -27,16 +27,15 @@ if (class_exists('WP_Customize_Control')) {
                     <span class="description customize-control-description"><?php echo esc_html($this->description); ?></span>
                 <?php endif; ?>
 
-                <div class="range-slider-wrap" style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
+                <div class="range-slider-wrap">
                     <input type="range"
                            value="<?php echo esc_attr($this->value()); ?>"
                            min="<?php echo esc_attr($this->min); ?>"
                            max="<?php echo esc_attr($this->max); ?>"
                            step="<?php echo esc_attr($this->step); ?>"
                            <?php $this->link(); ?>
-                           style="flex: 1;"
                            oninput="this.nextElementSibling.querySelector('.slider-value').innerText = this.value" />
-                    <span class="range-value-badge" style="display: inline-block; min-width: 50px; text-align: center; padding: 4px 8px; background: #e2e8f0; border-radius: 4px; font-weight: 600; font-size: 12px; color: #1e293b;">
+                    <span class="range-value-badge">
                         <span class="slider-value"><?php echo esc_html($this->value()); ?></span><?php echo esc_html($this->unit); ?>
                     </span>
                 </div>

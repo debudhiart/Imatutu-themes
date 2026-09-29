@@ -17,17 +17,17 @@ $stats = array(
     1 => array(
         'number' => get_theme_mod('stat_1_number', '150+'),
         'label'  => get_theme_mod('stat_1_label', 'Client'),
-        'desc'   => 'Active enterprise clients',
+        'desc'   => get_theme_mod('stat_1_desc', 'Active enterprise clients'),
     ),
     2 => array(
         'number' => get_theme_mod('stat_2_number', '150+'),
         'label'  => get_theme_mod('stat_2_label', 'Project'),
-        'desc'   => 'Delivered successfully',
+        'desc'   => get_theme_mod('stat_2_desc', 'Delivered successfully'),
     ),
     3 => array(
         'number' => get_theme_mod('stat_3_number', '3'),
         'label'  => get_theme_mod('stat_3_label', 'Country'),
-        'desc'   => 'Global coverage (AU, NZ, ID)',
+        'desc'   => get_theme_mod('stat_3_desc', 'Global coverage (AU, NZ, ID)'),
     ),
 );
 ?>
@@ -47,11 +47,11 @@ $stats = array(
 
                 <!-- 3 Stats Metrics (Using span tags for semantic heading validity) -->
                 <div class="stats-counters-grid">
-                    <?php foreach ($stats as $stat) : ?>
-                        <div class="stat-counter-card">
-                            <span class="stat-number"><?php echo esc_html($stat['number']); ?></span>
-                            <span class="stat-label"><?php echo esc_html($stat['label']); ?></span>
-                            <span class="stat-sublabel"><?php echo esc_html($stat['desc']); ?></span>
+                    <?php foreach ($stats as $idx => $stat) : ?>
+                        <div class="stat-counter-card stat-card-<?php echo esc_attr($idx); ?>">
+                            <span class="stat-number stat-num-<?php echo esc_attr($idx); ?>"><?php echo esc_html($stat['number']); ?></span>
+                            <span class="stat-label stat-lbl-<?php echo esc_attr($idx); ?>"><?php echo esc_html($stat['label']); ?></span>
+                            <span class="stat-sublabel stat-desc-<?php echo esc_attr($idx); ?>"><?php echo esc_html($stat['desc']); ?></span>
                         </div>
                     <?php endforeach; ?>
                 </div>

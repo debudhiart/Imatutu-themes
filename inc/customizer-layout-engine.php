@@ -10,6 +10,10 @@ if (!defined('ABSPATH')) {
 }
 
 function imatutu_register_builder_customizer($wp_customize) {
+    if (function_exists('imatutu_load_customizer_controls')) {
+        imatutu_load_customizer_controls();
+    }
+
     // -------------------------------------------------------------
     // Main Builder Panel
     // -------------------------------------------------------------
@@ -55,6 +59,7 @@ function imatutu_register_builder_customizer($wp_customize) {
         $wp_customize->add_setting("builder_sec_{$s}_bg_type", array(
             'default'           => ($s % 2 === 0) ? 'soft_slate' : 'default_white',
             'sanitize_callback' => 'sanitize_key',
+            'transport'         => 'postMessage',
         ));
         $wp_customize->add_control("builder_sec_{$s}_bg_type", array(
             'label'   => esc_html__('Section Background', 'imatutu'),
@@ -72,6 +77,7 @@ function imatutu_register_builder_customizer($wp_customize) {
         $wp_customize->add_setting("builder_sec_{$s}_padding", array(
             'default'           => 'medium',
             'sanitize_callback' => 'sanitize_key',
+            'transport'         => 'postMessage',
         ));
         $wp_customize->add_control("builder_sec_{$s}_padding", array(
             'label'   => esc_html__('Vertical Spacing (Padding)', 'imatutu'),
@@ -107,20 +113,30 @@ function imatutu_register_builder_customizer($wp_customize) {
         $wp_customize->add_setting("builder_sec_{$s}_gap", array(
             'default'           => '24',
             'sanitize_callback' => 'absint',
+            'transport'         => 'postMessage',
         ));
-        $wp_customize->add_control(new Imatutu_Range_Slider_Control($wp_customize, "builder_sec_{$s}_gap", array(
-            'label'   => esc_html__('Grid Gap (Spacing between columns)', 'imatutu'),
-            'section' => $sec_id,
-            'min'     => 0,
-            'max'     => 64,
-            'step'    => 8,
-            'unit'    => 'px',
-        )));
+        if (class_exists('Imatutu_Range_Slider_Control')) {
+            $wp_customize->add_control(new Imatutu_Range_Slider_Control($wp_customize, "builder_sec_{$s}_gap", array(
+                'label'   => esc_html__('Grid Gap (Spacing between columns)', 'imatutu'),
+                'section' => $sec_id,
+                'min'     => 0,
+                'max'     => 64,
+                'step'    => 8,
+                'unit'    => 'px',
+            )));
+        } else {
+            $wp_customize->add_control("builder_sec_{$s}_gap", array(
+                'label'   => esc_html__('Grid Gap (px)', 'imatutu'),
+                'section' => $sec_id,
+                'type'    => 'number',
+            ));
+        }
 
         // 7. Vertical Alignment
         $wp_customize->add_setting("builder_sec_{$s}_valign", array(
             'default'           => 'center',
             'sanitize_callback' => 'sanitize_key',
+            'transport'         => 'postMessage',
         ));
         $wp_customize->add_control("builder_sec_{$s}_valign", array(
             'label'   => esc_html__('Vertical Alignment', 'imatutu'),
@@ -161,10 +177,11 @@ function imatutu_register_builder_customizer($wp_customize) {
                 ),
             ));
 
-            // Heading Settings
+            // A. Heading Settings
             $wp_customize->add_setting("{$col_prefix}_heading_text", array(
                 'default'           => 'Empowering Enterprise Operations',
                 'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
             ));
             $wp_customize->add_control("{$col_prefix}_heading_text", array(
                 'label'   => sprintf(esc_html__('Col %d: Heading Text', 'imatutu'), $c),
@@ -183,10 +200,36 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'choices' => array('h1' => 'H1', 'h2' => 'H2', 'h3' => 'H3', 'h4' => 'H4'),
             ));
 
-            // Paragraph Content
+            $wp_customize->add_setting("{$col_prefix}_heading_align", array(
+                'default'           => 'left',
+                'sanitize_callback' => 'sanitize_key',
+            ));
+            $wp_customize->add_control("{$col_prefix}_heading_align", array(
+                'label'   => sprintf(esc_html__('Col %d: Heading Alignment', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'select',
+                'choices' => array(
+                    'left'   => esc_html__('Left', 'imatutu'),
+                    'center' => esc_html__('Center', 'imatutu'),
+                    'right'  => esc_html__('Right', 'imatutu'),
+                ),
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_heading_accent", array(
+                'default'           => true,
+                'sanitize_callback' => 'imatutu_sanitize_checkbox',
+            ));
+            $wp_customize->add_control("{$col_prefix}_heading_accent", array(
+                'label'   => sprintf(esc_html__('Col %d: Show Accent Line Bar', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'checkbox',
+            ));
+
+            // B. Paragraph Settings
             $wp_customize->add_setting("{$col_prefix}_paragraph_text", array(
                 'default'           => 'Our dedicated outsourcing solutions help streamline business workflows and accelerate growth with 24/7 reliability.',
                 'sanitize_callback' => 'sanitize_textarea_field',
+                'transport'         => 'postMessage',
             ));
             $wp_customize->add_control("{$col_prefix}_paragraph_text", array(
                 'label'   => sprintf(esc_html__('Col %d: Paragraph Text', 'imatutu'), $c),
@@ -194,7 +237,38 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'type'    => 'textarea',
             ));
 
-            // Image Upload
+            $wp_customize->add_setting("{$col_prefix}_paragraph_size", array(
+                'default'           => 'regular',
+                'sanitize_callback' => 'sanitize_key',
+            ));
+            $wp_customize->add_control("{$col_prefix}_paragraph_size", array(
+                'label'   => sprintf(esc_html__('Col %d: Paragraph Text Size', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'select',
+                'choices' => array(
+                    'small'   => esc_html__('Small (14px)', 'imatutu'),
+                    'regular' => esc_html__('Regular (16px)', 'imatutu'),
+                    'lead'    => esc_html__('Lead / Large (18px)', 'imatutu'),
+                ),
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_paragraph_align", array(
+                'default'           => 'left',
+                'sanitize_callback' => 'sanitize_key',
+            ));
+            $wp_customize->add_control("{$col_prefix}_paragraph_align", array(
+                'label'   => sprintf(esc_html__('Col %d: Paragraph Alignment', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'select',
+                'choices' => array(
+                    'left'    => esc_html__('Left', 'imatutu'),
+                    'center'  => esc_html__('Center', 'imatutu'),
+                    'right'   => esc_html__('Right', 'imatutu'),
+                    'justify' => esc_html__('Justify', 'imatutu'),
+                ),
+            ));
+
+            // C. Image Settings
             $wp_customize->add_setting("{$col_prefix}_image_url", array(
                 'default'           => '',
                 'sanitize_callback' => 'esc_url_raw',
@@ -214,7 +288,60 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'type'    => 'text',
             ));
 
-            // Video URL
+            $wp_customize->add_setting("{$col_prefix}_image_ratio", array(
+                'default'           => 'auto',
+                'sanitize_callback' => 'sanitize_key',
+            ));
+            $wp_customize->add_control("{$col_prefix}_image_ratio", array(
+                'label'   => sprintf(esc_html__('Col %d: Image Aspect Ratio', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'select',
+                'choices' => array(
+                    'auto' => esc_html__('Original (Auto)', 'imatutu'),
+                    '16-9' => esc_html__('Widescreen 16:9', 'imatutu'),
+                    '4-3'  => esc_html__('Standard 4:3', 'imatutu'),
+                    '1-1'  => esc_html__('Square 1:1', 'imatutu'),
+                ),
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_image_radius", array(
+                'default'           => 'rounded-xl',
+                'sanitize_callback' => 'sanitize_key',
+            ));
+            $wp_customize->add_control("{$col_prefix}_image_radius", array(
+                'label'   => sprintf(esc_html__('Col %d: Image Border Radius', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'select',
+                'choices' => array(
+                    'none'         => esc_html__('None (Sharp Corners)', 'imatutu'),
+                    'rounded-md'   => esc_html__('Medium (8px)', 'imatutu'),
+                    'rounded-xl'   => esc_html__('Large (16px)', 'imatutu'),
+                    'rounded-full' => esc_html__('Circular / Pill', 'imatutu'),
+                ),
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_image_link", array(
+                'default'           => '',
+                'sanitize_callback' => 'esc_url_raw',
+            ));
+            $wp_customize->add_control("{$col_prefix}_image_link", array(
+                'label'   => sprintf(esc_html__('Col %d: Image Click URL (Optional)', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'url',
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_image_lightbox", array(
+                'default'           => true,
+                'sanitize_callback' => 'imatutu_sanitize_checkbox',
+            ));
+            $wp_customize->add_control("{$col_prefix}_image_lightbox", array(
+                'label'       => sprintf(esc_html__('Col %d: Open in Popup Lightbox', 'imatutu'), $c),
+                'description' => esc_html__('Enabled when Image Click URL is empty.', 'imatutu'),
+                'section'     => $sec_id,
+                'type'        => 'checkbox',
+            ));
+
+            // D. Video Settings
             $wp_customize->add_setting("{$col_prefix}_video_url", array(
                 'default'           => '',
                 'sanitize_callback' => 'esc_url_raw',
@@ -226,10 +353,36 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'type'        => 'url',
             ));
 
-            // Button Settings
+            $wp_customize->add_setting("{$col_prefix}_video_aspect", array(
+                'default'           => '16-9',
+                'sanitize_callback' => 'sanitize_key',
+            ));
+            $wp_customize->add_control("{$col_prefix}_video_aspect", array(
+                'label'   => sprintf(esc_html__('Col %d: Video Aspect Ratio', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'select',
+                'choices' => array(
+                    '16-9' => esc_html__('16:9 Standard Widescreen', 'imatutu'),
+                    '4-3'  => esc_html__('4:3 Standard Video', 'imatutu'),
+                    '21-9' => esc_html__('21:9 Cinema Ultra-wide', 'imatutu'),
+                ),
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_video_autoplay", array(
+                'default'           => false,
+                'sanitize_callback' => 'imatutu_sanitize_checkbox',
+            ));
+            $wp_customize->add_control("{$col_prefix}_video_autoplay", array(
+                'label'       => sprintf(esc_html__('Col %d: Autoplay Video (Muted)', 'imatutu'), $c),
+                'section'     => $sec_id,
+                'type'        => 'checkbox',
+            ));
+
+            // E. Button Settings
             $wp_customize->add_setting("{$col_prefix}_btn_text", array(
                 'default'           => 'Get Started Today',
                 'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
             ));
             $wp_customize->add_control("{$col_prefix}_btn_text", array(
                 'label'   => sprintf(esc_html__('Col %d: Button Text', 'imatutu'), $c),
@@ -263,7 +416,32 @@ function imatutu_register_builder_customizer($wp_customize) {
                 ),
             ));
 
-            // Form Shortcode
+            $wp_customize->add_setting("{$col_prefix}_btn_size", array(
+                'default'           => 'md',
+                'sanitize_callback' => 'sanitize_key',
+            ));
+            $wp_customize->add_control("{$col_prefix}_btn_size", array(
+                'label'   => sprintf(esc_html__('Col %d: Button Size', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'select',
+                'choices' => array(
+                    'sm' => esc_html__('Small', 'imatutu'),
+                    'md' => esc_html__('Medium (Default)', 'imatutu'),
+                    'lg' => esc_html__('Large CTA', 'imatutu'),
+                ),
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_btn_target", array(
+                'default'           => false,
+                'sanitize_callback' => 'imatutu_sanitize_checkbox',
+            ));
+            $wp_customize->add_control("{$col_prefix}_btn_target", array(
+                'label'   => sprintf(esc_html__('Col %d: Open Link in New Tab (_blank)', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'checkbox',
+            ));
+
+            // F. Form Shortcode
             $wp_customize->add_setting("{$col_prefix}_form_shortcode", array(
                 'default'           => '',
                 'sanitize_callback' => 'sanitize_text_field',
@@ -275,7 +453,17 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'type'        => 'text',
             ));
 
-            // Icon Box Settings
+            $wp_customize->add_setting("{$col_prefix}_form_card_style", array(
+                'default'           => true,
+                'sanitize_callback' => 'imatutu_sanitize_checkbox',
+            ));
+            $wp_customize->add_control("{$col_prefix}_form_card_style", array(
+                'label'   => sprintf(esc_html__('Col %d: Render with Border Card & Shadow', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'checkbox',
+            ));
+
+            // G. Icon Box Settings
             $wp_customize->add_setting("{$col_prefix}_icon_preset", array(
                 'default'           => ($c === 1) ? 'phone' : (($c === 2) ? 'monitor' : 'shield'),
                 'sanitize_callback' => 'sanitize_key',
@@ -291,12 +479,15 @@ function imatutu_register_builder_customizer($wp_customize) {
                     'chart'   => esc_html__('Chart (Analytics & Stats)', 'imatutu'),
                     'clock'   => esc_html__('Clock (24/7 Service)', 'imatutu'),
                     'file'    => esc_html__('File (Administration & Accounting)', 'imatutu'),
+                    'map'     => esc_html__('Map (Global Network)', 'imatutu'),
+                    'user'    => esc_html__('User (Dedicated Specialists)', 'imatutu'),
                 ),
             ));
 
             $wp_customize->add_setting("{$col_prefix}_icon_title", array(
                 'default'           => sprintf(esc_html__('Specialized Solution %d', 'imatutu'), $c),
                 'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
             ));
             $wp_customize->add_control("{$col_prefix}_icon_title", array(
                 'label'   => sprintf(esc_html__('Col %d: Icon Box Title', 'imatutu'), $c),
@@ -307,6 +498,7 @@ function imatutu_register_builder_customizer($wp_customize) {
             $wp_customize->add_setting("{$col_prefix}_icon_desc", array(
                 'default'           => 'Enterprise service delivery tailored precisely to suit client requirements with high accuracy.',
                 'sanitize_callback' => 'sanitize_textarea_field',
+                'transport'         => 'postMessage',
             ));
             $wp_customize->add_control("{$col_prefix}_icon_desc", array(
                 'label'   => sprintf(esc_html__('Col %d: Icon Box Description', 'imatutu'), $c),
@@ -314,10 +506,21 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'type'    => 'textarea',
             ));
 
-            // Metric Counter
+            $wp_customize->add_setting("{$col_prefix}_icon_link", array(
+                'default'           => '',
+                'sanitize_callback' => 'esc_url_raw',
+            ));
+            $wp_customize->add_control("{$col_prefix}_icon_link", array(
+                'label'   => sprintf(esc_html__('Col %d: Icon Box Link URL (Optional)', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'url',
+            ));
+
+            // H. Metric Counter
             $wp_customize->add_setting("{$col_prefix}_counter_num", array(
                 'default'           => '99.9%',
                 'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
             ));
             $wp_customize->add_control("{$col_prefix}_counter_num", array(
                 'label'   => sprintf(esc_html__('Col %d: Counter Number', 'imatutu'), $c),
@@ -328,6 +531,7 @@ function imatutu_register_builder_customizer($wp_customize) {
             $wp_customize->add_setting("{$col_prefix}_counter_lbl", array(
                 'default'           => 'Uptime & Service Reliability',
                 'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
             ));
             $wp_customize->add_control("{$col_prefix}_counter_lbl", array(
                 'label'   => sprintf(esc_html__('Col %d: Counter Label', 'imatutu'), $c),
@@ -335,23 +539,80 @@ function imatutu_register_builder_customizer($wp_customize) {
                 'type'    => 'text',
             ));
 
-            // Accordion FAQ (Q1 & A1)
-            $wp_customize->add_setting("{$col_prefix}_faq_q", array(
-                'default'           => 'How quickly can Imatutu deploy support teams?',
+            $wp_customize->add_setting("{$col_prefix}_counter_subtext", array(
+                'default'           => 'Continuous 24/7 Monitoring',
                 'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
             ));
-            $wp_customize->add_control("{$col_prefix}_faq_q", array(
-                'label'   => sprintf(esc_html__('Col %d: Accordion Question', 'imatutu'), $c),
+            $wp_customize->add_control("{$col_prefix}_counter_subtext", array(
+                'label'   => sprintf(esc_html__('Col %d: Counter Subtext', 'imatutu'), $c),
                 'section' => $sec_id,
                 'type'    => 'text',
             ));
 
-            $wp_customize->add_setting("{$col_prefix}_faq_a", array(
+            // I. Accordion FAQ (Items 1 - 3)
+            $wp_customize->add_setting("{$col_prefix}_faq_q1", array(
+                'default'           => 'How quickly can Imatutu deploy support teams?',
+                'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
+            ));
+            $wp_customize->add_control("{$col_prefix}_faq_q1", array(
+                'label'   => sprintf(esc_html__('Col %d: Accordion Q1', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'text',
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_faq_a1", array(
                 'default'           => 'Our trained agents and technicians can be onboarded and active within 48 to 72 hours depending on scope.',
                 'sanitize_callback' => 'sanitize_textarea_field',
+                'transport'         => 'postMessage',
             ));
-            $wp_customize->add_control("{$col_prefix}_faq_a", array(
-                'label'   => sprintf(esc_html__('Col %d: Accordion Answer', 'imatutu'), $c),
+            $wp_customize->add_control("{$col_prefix}_faq_a1", array(
+                'label'   => sprintf(esc_html__('Col %d: Accordion A1', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'textarea',
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_faq_q2", array(
+                'default'           => 'What industries does Imatutu specialize in?',
+                'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
+            ));
+            $wp_customize->add_control("{$col_prefix}_faq_q2", array(
+                'label'   => sprintf(esc_html__('Col %d: Accordion Q2', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'text',
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_faq_a2", array(
+                'default'           => 'We provide comprehensive business support across logistics, transport dispatch, IT technical support, customer care, and corporate administration.',
+                'sanitize_callback' => 'sanitize_textarea_field',
+                'transport'         => 'postMessage',
+            ));
+            $wp_customize->add_control("{$col_prefix}_faq_a2", array(
+                'label'   => sprintf(esc_html__('Col %d: Accordion A2', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'textarea',
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_faq_q3", array(
+                'default'           => 'Do you offer 24/7 round-the-clock coverage?',
+                'sanitize_callback' => 'sanitize_text_field',
+                'transport'         => 'postMessage',
+            ));
+            $wp_customize->add_control("{$col_prefix}_faq_q3", array(
+                'label'   => sprintf(esc_html__('Col %d: Accordion Q3', 'imatutu'), $c),
+                'section' => $sec_id,
+                'type'    => 'text',
+            ));
+
+            $wp_customize->add_setting("{$col_prefix}_faq_a3", array(
+                'default'           => 'Yes, our operational hubs operate 24/7/365 to deliver continuous global support across multiple timezones.',
+                'sanitize_callback' => 'sanitize_textarea_field',
+                'transport'         => 'postMessage',
+            ));
+            $wp_customize->add_control("{$col_prefix}_faq_a3", array(
+                'label'   => sprintf(esc_html__('Col %d: Accordion A3', 'imatutu'), $c),
                 'section' => $sec_id,
                 'type'    => 'textarea',
             ));

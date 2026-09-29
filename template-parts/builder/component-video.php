@@ -15,17 +15,23 @@ if (empty($prefix)) {
 }
 
 $video_url = get_theme_mod("{$prefix}_video_url", '');
+$aspect    = get_theme_mod("{$prefix}_video_aspect", '16-9');
+$autoplay  = get_theme_mod("{$prefix}_video_autoplay", false);
 ?>
 
 <div class="builder-component component-video">
     <?php if (!empty($video_url)) : ?>
-        <div class="builder-video-responsive ratio-16-9">
+        <div class="builder-video-responsive ratio-<?php echo esc_attr($aspect); ?>">
             <?php
             $embed_code = wp_oembed_get($video_url);
             if ($embed_code) {
+                if ($autoplay) {
+                    $embed_code = preg_replace('/src="([^"]+)"/', 'src="$1&autoplay=1&mute=1"', $embed_code);
+                }
                 echo $embed_code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             } else {
-                echo '<video controls playsinline><source src="' . esc_url($video_url) . '" type="video/mp4"></video>';
+                $auto_attr = $autoplay ? ' autoplay muted loop' : '';
+                echo '<video controls playsinline' . $auto_attr . '><source src="' . esc_url($video_url) . '" type="video/mp4"></video>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             }
             ?>
         </div>

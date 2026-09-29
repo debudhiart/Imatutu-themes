@@ -15,8 +15,6 @@ $excludeList = array(
     '.gitignore',
     'issue.md',
     'build-zip.php',
-    'imatutu-theme.zip',
-    'imatutu-theme-folder.zip',
     'scratch',
 );
 
@@ -45,6 +43,11 @@ function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = '') {
         $subPath = substr($realPath, strlen($sourceDir));
         $cleanPath = ltrim(str_replace('\\', '/', $subPath), '/');
 
+        // Check if file is a zip archive
+        if (substr($cleanPath, -4) === '.zip') {
+            continue;
+        }
+
         // Check exclusion
         $skip = false;
         foreach ($excludeList as $ex) {
@@ -71,8 +74,12 @@ function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = '') {
     echo "SUCCESS: {$count} files added to " . basename($zipFilename) . "\n";
 }
 
-// 1. Primary package: Flat root for WP Dashboard Upload
-packageThemeZip(__DIR__ . '/imatutu-theme.zip', $sourceDir, $excludeList, '');
+// 1. Standard WordPress Theme Package (Slug: imatutu-theme)
+packageThemeZip(__DIR__ . '/imatutu-theme.zip', $sourceDir, $excludeList, 'imatutu-theme/');
 
-// 2. Secondary package: Enclosed folder for manual extraction
-packageThemeZip(__DIR__ . '/imatutu-theme-folder.zip', $sourceDir, $excludeList, 'imatutu-theme/');
+// 2. Standard WordPress Theme Package (Slug: imatutu)
+packageThemeZip(__DIR__ . '/imatutu.zip', $sourceDir, $excludeList, 'imatutu/');
+
+// 3. Flat root package (Direct files at root)
+packageThemeZip(__DIR__ . '/imatutu-flat.zip', $sourceDir, $excludeList, '');
+
