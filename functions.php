@@ -9,6 +9,14 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Boost PHP resources specifically for WP Customizer (which serializes many controls to JSON).
+// Hosting limit: memory_limit=128M, max_execution_time=30s. We push it higher for admin pages.
+if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
+    @ini_set('memory_limit', '256M');
+    @ini_set('max_execution_time', 120);
+}
+
+
 if (!function_exists('imatutu_setup')) :
     /**
      * Sets up theme defaults and registers support for various WordPress features.

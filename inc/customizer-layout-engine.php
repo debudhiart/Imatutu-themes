@@ -24,8 +24,8 @@ if (!function_exists('imatutu_register_builder_customizer')) {
         'priority'    => 28,
     ));
 
-    // Support up to 3 dynamic modular sections (limited to keep JSON payload manageable)
-    for ($s = 1; $s <= 3; $s++) {
+    // Support up to 2 dynamic modular sections (minimal footprint for 128M/30s hosting)
+    for ($s = 1; $s <= 2; $s++) {
         $sec_id = "sec_builder_s{$s}";
         
         $wp_customize->add_section($sec_id, array(
@@ -150,8 +150,8 @@ if (!function_exists('imatutu_register_builder_customizer')) {
             ),
         ));
 
-        // Column Components (Up to 3 columns per section — reduces JSON payload)
-        for ($c = 1; $c <= 3; $c++) {
+        // Column Components (2 columns per section — minimal footprint)
+        for ($c = 1; $c <= 2; $c++) {
             $col_prefix = "builder_sec_{$s}_col_{$c}";
 
             // Component Type

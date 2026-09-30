@@ -11,27 +11,18 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Require Modular Customizer Engines
+// Require helper engines (palettes data only — no custom controls loaded)
 require_once get_template_directory() . '/inc/customizer-palettes.php';
 require_once get_template_directory() . '/inc/customizer-typography.php';
 require_once get_template_directory() . '/inc/customizer-layout-engine.php';
 
-/**
- * Load custom control classes when customize_register fires
- * (Ensures WP_Customize_Control is defined before extending it)
- */
-if (!function_exists('imatutu_load_customizer_controls')) {
-    function imatutu_load_customizer_controls() {
-        require_once get_template_directory() . '/inc/custom-controls/class-control-range-slider.php';
-        require_once get_template_directory() . '/inc/custom-controls/class-control-palette-picker.php';
-        require_once get_template_directory() . '/inc/custom-controls/class-control-typography.php';
-    }
-}
-add_action('customize_register', 'imatutu_load_customizer_controls', 1);
+// NOTE: Custom controls (Typography, Range Slider, Palette Picker) are intentionally
+// NOT registered here because their extra properties caused wp_json_encode() to fail
+// silently in WordPress Core's customize_pane_settings(), preventing _wpCustomizeSettings
+// from being defined. All controls below use 100% native WP_Customize controls.
 
 if (!function_exists('imatutu_customize_register')) {
     function imatutu_customize_register($wp_customize) {
-        imatutu_load_customizer_controls();
 
     // -------------------------------------------------------------
     // Main Customizer Panel
@@ -51,20 +42,23 @@ if (!function_exists('imatutu_customize_register')) {
         'priority' => 10,
     ));
 
-    // 1-Click Color Preset Picker
+    // Color Palette Preset (native select — avoids custom control json issues)
+    $palette_choices = array();
+    foreach ( array_keys( imatutu_get_color_palettes() ) as $key ) {
+        $palettes_data = imatutu_get_color_palettes();
+        $palette_choices[ $key ] = isset( $palettes_data[ $key ]['name'] ) ? $palettes_data[ $key ]['name'] : $key;
+    }
     $wp_customize->add_setting('color_preset_active', array(
         'default'           => 'pertamina_blue',
         'sanitize_callback' => 'sanitize_key',
         'transport'         => 'refresh',
     ));
-    if (class_exists('Imatutu_Palette_Picker_Control')) {
-        $wp_customize->add_control(new Imatutu_Palette_Picker_Control($wp_customize, 'color_preset_active', array(
-            'label'       => esc_html__('1-Click Color Palette Preset', 'imatutu'),
-            'description' => esc_html__('Select a curated corporate color scheme.', 'imatutu'),
-            'section'     => 'sec_imatutu_colors',
-            'palettes'    => imatutu_get_color_palettes(),
-        )));
-    }
+    $wp_customize->add_control('color_preset_active', array(
+        'label'   => esc_html__('1-Click Color Palette Preset', 'imatutu'),
+        'section' => 'sec_imatutu_colors',
+        'type'    => 'select',
+        'choices' => $palette_choices,
+    ));
 
     // Primary Color
     $wp_customize->add_setting('primary_color', array(
@@ -183,19 +177,29 @@ if (!function_exists('imatutu_customize_register')) {
         'priority' => 15,
     ));
 
+    // --- Typography controls: use 100% native select/number (no custom controls) ---
+    $font_choices = array(
+        'Plus Jakarta Sans' => 'Plus Jakarta Sans (Corporate Modern)',
+        'Inter'             => 'Inter (Clean & Tech)',
+        'Roboto'            => 'Roboto (Standard Enterprise)',
+        'Poppins'           => 'Poppins (Geometric & Friendly)',
+        'Outfit'            => 'Outfit (Modern Minimalist)',
+        'System'            => 'System Sans-Serif (Native Fast)',
+    );
+
     // Primary Body Font
     $wp_customize->add_setting('typo_primary_font', array(
         'default'           => 'Plus Jakarta Sans',
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
-    if (class_exists('Imatutu_Typography_Control')) {
-        $wp_customize->add_control(new Imatutu_Typography_Control($wp_customize, 'typo_primary_font', array(
-            'label'       => esc_html__('Primary Body Font Family', 'imatutu'),
-            'description' => esc_html__('Used for paragraphs, buttons, and navigation.', 'imatutu'),
-            'section'     => 'sec_imatutu_typography',
-        )));
-    }
+    $wp_customize->add_control('typo_primary_font', array(
+        'label'       => esc_html__('Primary Body Font Family', 'imatutu'),
+        'description' => esc_html__('Used for paragraphs, buttons, and navigation.', 'imatutu'),
+        'section'     => 'sec_imatutu_typography',
+        'type'        => 'select',
+        'choices'     => $font_choices,
+    ));
 
     // Heading Font
     $wp_customize->add_setting('typo_heading_font', array(
@@ -203,98 +207,78 @@ if (!function_exists('imatutu_customize_register')) {
         'sanitize_callback' => 'sanitize_text_field',
         'transport'         => 'refresh',
     ));
-    if (class_exists('Imatutu_Typography_Control')) {
-        $wp_customize->add_control(new Imatutu_Typography_Control($wp_customize, 'typo_heading_font', array(
-            'label'       => esc_html__('Heading Font Family', 'imatutu'),
-            'description' => esc_html__('Used for all titles (H1-H6) and brand logo.', 'imatutu'),
-            'section'     => 'sec_imatutu_typography',
-        )));
-    }
+    $wp_customize->add_control('typo_heading_font', array(
+        'label'       => esc_html__('Heading Font Family (H1-H6)', 'imatutu'),
+        'description' => esc_html__('Used for all titles and brand logo.', 'imatutu'),
+        'section'     => 'sec_imatutu_typography',
+        'type'        => 'select',
+        'choices'     => $font_choices,
+    ));
 
-    // H1 Size Slider
+    // H1 Size — native number input
     $wp_customize->add_setting('typo_h1_size', array(
         'default'           => 48,
         'sanitize_callback' => 'absint',
         'transport'         => 'postMessage',
     ));
-    if (class_exists('Imatutu_Range_Slider_Control')) {
-        $wp_customize->add_control(new Imatutu_Range_Slider_Control($wp_customize, 'typo_h1_size', array(
-            'label'   => esc_html__('Heading 1 Size (Desktop)', 'imatutu'),
-            'section' => 'sec_imatutu_typography',
-            'min'     => 32,
-            'max'     => 72,
-            'step'    => 2,
-            'unit'    => 'px',
-        )));
-    }
+    $wp_customize->add_control('typo_h1_size', array(
+        'label'       => esc_html__('H1 Size in px (Desktop)', 'imatutu'),
+        'section'     => 'sec_imatutu_typography',
+        'type'        => 'number',
+        'input_attrs' => array( 'min' => 32, 'max' => 72, 'step' => 2 ),
+    ));
 
-    // H2 Size Slider
+    // H2 Size
     $wp_customize->add_setting('typo_h2_size', array(
         'default'           => 36,
         'sanitize_callback' => 'absint',
         'transport'         => 'postMessage',
     ));
-    if (class_exists('Imatutu_Range_Slider_Control')) {
-        $wp_customize->add_control(new Imatutu_Range_Slider_Control($wp_customize, 'typo_h2_size', array(
-            'label'   => esc_html__('Heading 2 Size (Desktop)', 'imatutu'),
-            'section' => 'sec_imatutu_typography',
-            'min'     => 24,
-            'max'     => 54,
-            'step'    => 2,
-            'unit'    => 'px',
-        )));
-    }
+    $wp_customize->add_control('typo_h2_size', array(
+        'label'       => esc_html__('H2 Size in px (Desktop)', 'imatutu'),
+        'section'     => 'sec_imatutu_typography',
+        'type'        => 'number',
+        'input_attrs' => array( 'min' => 24, 'max' => 54, 'step' => 2 ),
+    ));
 
-    // H3 Size Slider
+    // H3 Size
     $wp_customize->add_setting('typo_h3_size', array(
         'default'           => 24,
         'sanitize_callback' => 'absint',
         'transport'         => 'postMessage',
     ));
-    if (class_exists('Imatutu_Range_Slider_Control')) {
-        $wp_customize->add_control(new Imatutu_Range_Slider_Control($wp_customize, 'typo_h3_size', array(
-            'label'   => esc_html__('Heading 3 Size (Desktop)', 'imatutu'),
-            'section' => 'sec_imatutu_typography',
-            'min'     => 18,
-            'max'     => 36,
-            'step'    => 1,
-            'unit'    => 'px',
-        )));
-    }
+    $wp_customize->add_control('typo_h3_size', array(
+        'label'       => esc_html__('H3 Size in px (Desktop)', 'imatutu'),
+        'section'     => 'sec_imatutu_typography',
+        'type'        => 'number',
+        'input_attrs' => array( 'min' => 18, 'max' => 36, 'step' => 1 ),
+    ));
 
-    // Body Font Size Slider
+    // Body Font Size
     $wp_customize->add_setting('typo_body_size', array(
         'default'           => 16,
         'sanitize_callback' => 'absint',
         'transport'         => 'postMessage',
     ));
-    if (class_exists('Imatutu_Range_Slider_Control')) {
-        $wp_customize->add_control(new Imatutu_Range_Slider_Control($wp_customize, 'typo_body_size', array(
-            'label'   => esc_html__('Body Font Size', 'imatutu'),
-            'section' => 'sec_imatutu_typography',
-            'min'     => 14,
-            'max'     => 22,
-            'step'    => 1,
-            'unit'    => 'px',
-        )));
-    }
+    $wp_customize->add_control('typo_body_size', array(
+        'label'       => esc_html__('Body Font Size in px', 'imatutu'),
+        'section'     => 'sec_imatutu_typography',
+        'type'        => 'number',
+        'input_attrs' => array( 'min' => 14, 'max' => 22, 'step' => 1 ),
+    ));
 
-    // Body Line Height Slider
+    // Body Line Height
     $wp_customize->add_setting('typo_body_line_height', array(
         'default'           => 1.6,
         'sanitize_callback' => 'imatutu_sanitize_float',
         'transport'         => 'postMessage',
     ));
-    if (class_exists('Imatutu_Range_Slider_Control')) {
-        $wp_customize->add_control(new Imatutu_Range_Slider_Control($wp_customize, 'typo_body_line_height', array(
-            'label'   => esc_html__('Body Line Height', 'imatutu'),
-            'section' => 'sec_imatutu_typography',
-            'min'     => 1.2,
-            'max'     => 2.2,
-            'step'    => 0.1,
-            'unit'    => '',
-        )));
-    }
+    $wp_customize->add_control('typo_body_line_height', array(
+        'label'       => esc_html__('Body Line Height (e.g. 1.6)', 'imatutu'),
+        'section'     => 'sec_imatutu_typography',
+        'type'        => 'number',
+        'input_attrs' => array( 'min' => 1.2, 'max' => 2.2, 'step' => 0.1 ),
+    ));
 
 
     // =============================================================
@@ -918,51 +902,6 @@ if (!function_exists('imatutu_customizer_controls_scripts')) {
 add_action('customize_controls_enqueue_scripts', 'imatutu_customizer_controls_scripts');
 
 /**
- * Diagnostic scripts for Customizer head and footer execution verification
- */
-if (!function_exists('imatutu_customizer_head_diagnostics')) {
-    function imatutu_customizer_head_diagnostics() {
-        echo '<script>console.log("%c[Imatutu Customizer]%c Head diagnostics initialized. Waiting for Customizer controls & settings...", "color: #1559ED; font-weight: bold;", "color: inherit;");</script>' . "\n";
-    }
-}
-add_action('customize_controls_print_scripts', 'imatutu_customizer_head_diagnostics', 1);
-
-if (!function_exists('imatutu_customizer_footer_diagnostics_start')) {
-    function imatutu_customizer_footer_diagnostics_start() {
-        echo '<script>console.log("%c[Imatutu Customizer]%c Footer STEP 1 (priority 1): Hook fired. Waiting for WP Core serialize (priority 1000)...", "color: #D97706; font-weight: bold;", "color: inherit;");</script>' . "\n";
-    }
-}
-add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_footer_diagnostics_start', 1);
-
-// Priority 999 = just BEFORE WP Core's customize_pane_settings() which is at priority 1000
-if (!function_exists('imatutu_customizer_pre_pane_settings')) {
-    function imatutu_customizer_pre_pane_settings() {
-        echo '<script>console.log("%c[Imatutu Customizer]%c STEP 2 (priority 999): About to call WP Core customize_pane_settings()...", "color: #7C3AED; font-weight: bold;", "color: inherit;");</script>' . "\n";
-        // Also log to server-side PHP error log
-        error_log('[Imatutu Customizer] PRE customize_pane_settings() — PHP memory usage: ' . round(memory_get_usage(true) / 1048576, 2) . 'MB / peak: ' . round(memory_get_peak_usage(true) / 1048576, 2) . 'MB');
-    }
-}
-add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_pre_pane_settings', 999);
-
-// Priority 1001 = just AFTER WP Core's customize_pane_settings() which is at priority 1000
-if (!function_exists('imatutu_customizer_post_pane_settings')) {
-    function imatutu_customizer_post_pane_settings() {
-        echo '<script>console.log("%c[Imatutu Customizer]%c STEP 3 (priority 1001): After customize_pane_settings(). _wpCustomizeSettings defined:", "color: #059669; font-weight: bold;", "color: inherit;", typeof window._wpCustomizeSettings !== "undefined");</script>' . "\n";
-        error_log('[Imatutu Customizer] POST customize_pane_settings() — execution reached priority 1001');
-    }
-}
-add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_post_pane_settings', 1001);
-
-if (!function_exists('imatutu_customizer_footer_diagnostics_end')) {
-    function imatutu_customizer_footer_diagnostics_end() {
-        echo '<script>console.log("%c[Imatutu Customizer]%c STEP 4 (priority 2000): All footer scripts complete. _wpCustomizeSettings defined:", "color: #16A34A; font-weight: bold;", "color: inherit;", typeof window._wpCustomizeSettings !== "undefined");</script>' . "\n";
-        error_log('[Imatutu Customizer] Footer serialization FULLY completed (priority 2000)');
-    }
-}
-add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_footer_diagnostics_end', 2000);
-
-
-/**
  * Helper to sanitize floating point numbers
  */
 if (!function_exists('imatutu_sanitize_float')) {
@@ -970,3 +909,4 @@ if (!function_exists('imatutu_sanitize_float')) {
         return floatval($val);
     }
 }
+
