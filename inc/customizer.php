@@ -929,17 +929,38 @@ add_action('customize_controls_print_scripts', 'imatutu_customizer_head_diagnost
 
 if (!function_exists('imatutu_customizer_footer_diagnostics_start')) {
     function imatutu_customizer_footer_diagnostics_start() {
-        echo '<script>console.log("%c[Imatutu Customizer]%c Footer script serialization starting...", "color: #D97706; font-weight: bold;", "color: inherit;");</script>' . "\n";
+        echo '<script>console.log("%c[Imatutu Customizer]%c Footer STEP 1 (priority 1): Hook fired. Waiting for WP Core serialize (priority 1000)...", "color: #D97706; font-weight: bold;", "color: inherit;");</script>' . "\n";
     }
 }
 add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_footer_diagnostics_start', 1);
 
+// Priority 999 = just BEFORE WP Core's customize_pane_settings() which is at priority 1000
+if (!function_exists('imatutu_customizer_pre_pane_settings')) {
+    function imatutu_customizer_pre_pane_settings() {
+        echo '<script>console.log("%c[Imatutu Customizer]%c STEP 2 (priority 999): About to call WP Core customize_pane_settings()...", "color: #7C3AED; font-weight: bold;", "color: inherit;");</script>' . "\n";
+        // Also log to server-side PHP error log
+        error_log('[Imatutu Customizer] PRE customize_pane_settings() — PHP memory usage: ' . round(memory_get_usage(true) / 1048576, 2) . 'MB / peak: ' . round(memory_get_peak_usage(true) / 1048576, 2) . 'MB');
+    }
+}
+add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_pre_pane_settings', 999);
+
+// Priority 1001 = just AFTER WP Core's customize_pane_settings() which is at priority 1000
+if (!function_exists('imatutu_customizer_post_pane_settings')) {
+    function imatutu_customizer_post_pane_settings() {
+        echo '<script>console.log("%c[Imatutu Customizer]%c STEP 3 (priority 1001): After customize_pane_settings(). _wpCustomizeSettings defined:", "color: #059669; font-weight: bold;", "color: inherit;", typeof window._wpCustomizeSettings !== "undefined");</script>' . "\n";
+        error_log('[Imatutu Customizer] POST customize_pane_settings() — execution reached priority 1001');
+    }
+}
+add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_post_pane_settings', 1001);
+
 if (!function_exists('imatutu_customizer_footer_diagnostics_end')) {
     function imatutu_customizer_footer_diagnostics_end() {
-        echo '<script>console.log("%c[Imatutu Customizer]%c Footer script serialization completed. _wpCustomizeSettings defined:", "color: #16A34A; font-weight: bold;", "color: inherit;", typeof window._wpCustomizeSettings !== "undefined");</script>' . "\n";
+        echo '<script>console.log("%c[Imatutu Customizer]%c STEP 4 (priority 2000): All footer scripts complete. _wpCustomizeSettings defined:", "color: #16A34A; font-weight: bold;", "color: inherit;", typeof window._wpCustomizeSettings !== "undefined");</script>' . "\n";
+        error_log('[Imatutu Customizer] Footer serialization FULLY completed (priority 2000)');
     }
 }
 add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_footer_diagnostics_end', 2000);
+
 
 /**
  * Helper to sanitize floating point numbers

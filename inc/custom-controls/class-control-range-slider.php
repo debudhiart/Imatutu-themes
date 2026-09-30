@@ -17,6 +17,18 @@ if (class_exists('WP_Customize_Control') && !class_exists('Imatutu_Range_Slider_
         public $step = 1;
         public $unit = 'px';
 
+        /**
+         * Override to_json() so float properties are explicitly cast,
+         * preventing wp_json_encode() from failing on non-scalar values.
+         */
+        public function to_json() {
+            parent::to_json();
+            $this->json['min']  = (float) $this->min;
+            $this->json['max']  = (float) $this->max;
+            $this->json['step'] = (float) $this->step;
+            $this->json['unit'] = sanitize_text_field( (string) $this->unit );
+        }
+
         public function render_content() {
             ?>
             <div class="imatutu-range-slider-control">

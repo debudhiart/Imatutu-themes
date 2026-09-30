@@ -14,6 +14,23 @@ if (class_exists('WP_Customize_Control') && !class_exists('Imatutu_Palette_Picke
         public $type = 'imatutu_palette_picker';
         public $palettes = array();
 
+        /**
+         * Override to_json() to ensure $palettes array serializes cleanly.
+         */
+        public function to_json() {
+            parent::to_json();
+            // Ensure palettes are clean arrays (not objects) for json_encode
+            $safe_palettes = array();
+            foreach ( (array) $this->palettes as $id => $palette ) {
+                $safe_palettes[ sanitize_key($id) ] = array(
+                    'name'   => sanitize_text_field( isset($palette['name']) ? $palette['name'] : '' ),
+                    'colors' => array_map( 'sanitize_hex_color', isset($palette['colors']) ? (array) $palette['colors'] : array() ),
+                );
+            }
+            $this->json['palettes'] = $safe_palettes;
+        }
+
+
         public function render_content() {
             if (empty($this->palettes)) {
                 return;
