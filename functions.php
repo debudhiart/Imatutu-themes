@@ -106,7 +106,7 @@ if (!function_exists('imatutu_scripts')) {
         wp_enqueue_style('imatutu-builder', get_template_directory_uri() . '/assets/css/builder.css', array('imatutu-main'), $builder_css_version);
 
         // style.css for metadata and child theme compatibility
-        wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main', 'imatutu-builder'), '2.0.0');
+        wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main', 'imatutu-builder'), '2.0.1');
 
         // Dynamic customizer styling (Colors & Typography)
         $custom_css = '';

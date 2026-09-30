@@ -21,6 +21,7 @@ require_once get_template_directory() . '/inc/customizer-layout-engine.php';
 // silently in WordPress Core's customize_pane_settings(), preventing _wpCustomizeSettings
 // from being defined. All controls below use 100% native WP_Customize controls.
 
+
 if (!function_exists('imatutu_customize_register')) {
     function imatutu_customize_register($wp_customize) {
 
