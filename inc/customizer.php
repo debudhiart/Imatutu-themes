@@ -918,6 +918,30 @@ if (!function_exists('imatutu_customizer_controls_scripts')) {
 add_action('customize_controls_enqueue_scripts', 'imatutu_customizer_controls_scripts');
 
 /**
+ * Diagnostic scripts for Customizer head and footer execution verification
+ */
+if (!function_exists('imatutu_customizer_head_diagnostics')) {
+    function imatutu_customizer_head_diagnostics() {
+        echo '<script>console.log("%c[Imatutu Customizer]%c Head diagnostics initialized. Waiting for Customizer controls & settings...", "color: #1559ED; font-weight: bold;", "color: inherit;");</script>' . "\n";
+    }
+}
+add_action('customize_controls_print_scripts', 'imatutu_customizer_head_diagnostics', 1);
+
+if (!function_exists('imatutu_customizer_footer_diagnostics_start')) {
+    function imatutu_customizer_footer_diagnostics_start() {
+        echo '<script>console.log("%c[Imatutu Customizer]%c Footer script serialization starting...", "color: #D97706; font-weight: bold;", "color: inherit;");</script>' . "\n";
+    }
+}
+add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_footer_diagnostics_start', 1);
+
+if (!function_exists('imatutu_customizer_footer_diagnostics_end')) {
+    function imatutu_customizer_footer_diagnostics_end() {
+        echo '<script>console.log("%c[Imatutu Customizer]%c Footer script serialization completed. _wpCustomizeSettings defined:", "color: #16A34A; font-weight: bold;", "color: inherit;", typeof window._wpCustomizeSettings !== "undefined");</script>' . "\n";
+    }
+}
+add_action('customize_controls_print_footer_scripts', 'imatutu_customizer_footer_diagnostics_end', 2000);
+
+/**
  * Helper to sanitize floating point numbers
  */
 if (!function_exists('imatutu_sanitize_float')) {

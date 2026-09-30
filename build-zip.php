@@ -16,6 +16,12 @@ $excludeList = array(
     'issue.md',
     'build-zip.php',
     'scratch',
+    'scratch-customize.php',
+    'test-controls-json.php',
+    'test-customizer.php',
+    'test-missing-settings.php',
+    'test-real-wp-controls.php',
+    'test-settings-json.php',
 );
 
 function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = '') {
