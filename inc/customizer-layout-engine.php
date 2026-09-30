@@ -628,6 +628,7 @@ if (!function_exists('imatutu_register_builder_customizer')) {
         }
     }
 }
+}
 add_action('customize_register', 'imatutu_register_builder_customizer', 30);
 
 /**

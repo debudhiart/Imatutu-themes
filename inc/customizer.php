@@ -852,6 +852,7 @@ if (!function_exists('imatutu_customize_register')) {
         'type'    => 'text',
     ));
 }
+}
 add_action('customize_register', 'imatutu_customize_register');
 
 /**
