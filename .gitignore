@@ -13,3 +13,6 @@ $RECYCLE.BIN/
 
 # Archive files
 *.zip
+
+# Temporary development scratch
+scratch/

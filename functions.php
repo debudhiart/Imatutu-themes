@@ -9,6 +9,14 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Boost PHP resources specifically for WP Customizer (which serializes many controls to JSON).
+// Hosting limit: memory_limit=128M, max_execution_time=30s. We push it higher for admin pages.
+if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
+    @ini_set('memory_limit', '256M');
+    @ini_set('max_execution_time', 120);
+}
+
+
 if (!function_exists('imatutu_setup')) :
     /**
      * Sets up theme defaults and registers support for various WordPress features.
@@ -65,54 +73,68 @@ add_action('after_setup_theme', 'imatutu_setup');
 /**
  * Set the content width in pixels, based on the theme's design and stylesheet.
  */
-function imatutu_content_width() {
-    $GLOBALS['content_width'] = apply_filters('imatutu_content_width', 1200);
+if (!function_exists('imatutu_content_width')) {
+    function imatutu_content_width() {
+        $GLOBALS['content_width'] = apply_filters('imatutu_content_width', 1200);
+    }
 }
 add_action('after_setup_theme', 'imatutu_content_width', 0);
 
 /**
  * Enqueue scripts and styles.
  */
-function imatutu_scripts() {
-    // Google Fonts: Plus Jakarta Sans
-    wp_enqueue_style(
-        'imatutu-google-fonts',
-        'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap',
-        array(),
-        null
-    );
+if (!function_exists('imatutu_scripts')) {
+    function imatutu_scripts() {
+        // Google Fonts: Plus Jakarta Sans
+        wp_enqueue_style(
+            'imatutu-google-fonts',
+            'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap',
+            array(),
+            null
+        );
 
-    // Main Theme CSS
-    $css_version = file_exists(get_template_directory() . '/assets/css/main.css') 
-        ? filemtime(get_template_directory() . '/assets/css/main.css') 
-        : '1.0.0';
-    wp_enqueue_style('imatutu-main', get_template_directory_uri() . '/assets/css/main.css', array('imatutu-google-fonts'), $css_version);
+        // Main Theme CSS
+        $css_version = file_exists(get_template_directory() . '/assets/css/main.css') 
+            ? filemtime(get_template_directory() . '/assets/css/main.css') 
+            : '2.0.0';
+        wp_enqueue_style('imatutu-main', get_template_directory_uri() . '/assets/css/main.css', array('imatutu-google-fonts'), $css_version);
 
-    // style.css for metadata and child theme compatibility
-    wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main'), '1.0.0');
+        // Builder CSS
+        $builder_css_version = file_exists(get_template_directory() . '/assets/css/builder.css')
+            ? filemtime(get_template_directory() . '/assets/css/builder.css')
+            : '2.0.0';
+        wp_enqueue_style('imatutu-builder', get_template_directory_uri() . '/assets/css/builder.css', array('imatutu-main'), $builder_css_version);
 
-    // Dynamic customizer styling
-    $primary_color   = get_theme_mod('primary_color', '#1559ED');
-    $secondary_color = get_theme_mod('secondary_color', '#0B192C');
-    $accent_color    = get_theme_mod('accent_color', '#E21F23');
+        // style.css for metadata and child theme compatibility
+        wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main', 'imatutu-builder'), '2.0.1');
 
-    $custom_css = "
-        :root {
-            --color-primary: " . esc_attr($primary_color) . ";
-            --color-secondary: " . esc_attr($secondary_color) . ";
-            --color-accent: " . esc_attr($accent_color) . ";
+        // Dynamic customizer styling (Colors & Typography)
+        $custom_css = '';
+        if (function_exists('imatutu_get_color_css')) {
+            $custom_css .= imatutu_get_color_css();
         }
-    ";
-    wp_add_inline_style('imatutu-main', $custom_css);
+        if (function_exists('imatutu_get_typography_css')) {
+            $custom_css .= imatutu_get_typography_css();
+        }
+        if (!empty($custom_css)) {
+            wp_add_inline_style('imatutu-main', $custom_css);
+        }
 
-    // Main Theme JavaScript
-    $js_version = file_exists(get_template_directory() . '/assets/js/main.js') 
-        ? filemtime(get_template_directory() . '/assets/js/main.js') 
-        : '1.0.0';
-    wp_enqueue_script('imatutu-script', get_template_directory_uri() . '/assets/js/main.js', array(), $js_version, true);
+        // Main Theme JavaScript
+        $js_version = file_exists(get_template_directory() . '/assets/js/main.js') 
+            ? filemtime(get_template_directory() . '/assets/js/main.js') 
+            : '2.0.0';
+        wp_enqueue_script('imatutu-script', get_template_directory_uri() . '/assets/js/main.js', array(), $js_version, true);
 
-    if (is_singular() && comments_open() && get_option('thread_comments')) {
-        wp_enqueue_script('comment-reply');
+        // Builder Frontend JavaScript
+        $builder_js_version = file_exists(get_template_directory() . '/assets/js/builder-frontend.js')
+            ? filemtime(get_template_directory() . '/assets/js/builder-frontend.js')
+            : '2.0.0';
+        wp_enqueue_script('imatutu-builder-js', get_template_directory_uri() . '/assets/js/builder-frontend.js', array(), $builder_js_version, true);
+
+        if (is_singular() && comments_open() && get_option('thread_comments')) {
+            wp_enqueue_script('comment-reply');
+        }
     }
 }
 add_action('wp_enqueue_scripts', 'imatutu_scripts');
@@ -120,42 +142,46 @@ add_action('wp_enqueue_scripts', 'imatutu_scripts');
 /**
  * Fallback menu when no WordPress menu is assigned yet
  */
-function imatutu_default_primary_menu() {
-    $menu_items = array(
-        array('title' => 'Home', 'url' => home_url('/')),
-        array('title' => 'About Us', 'url' => home_url('/about-us/')),
-        array('title' => 'Careers', 'url' => home_url('/careers/')),
-        array('title' => 'Gallery', 'url' => home_url('/gallery/')),
-        array('title' => 'Contact Us', 'url' => home_url('/contact-us/')),
-    );
+if (!function_exists('imatutu_default_primary_menu')) {
+    function imatutu_default_primary_menu() {
+        $menu_items = array(
+            array('title' => 'Home', 'url' => home_url('/')),
+            array('title' => 'About Us', 'url' => home_url('/about-us/')),
+            array('title' => 'Careers', 'url' => home_url('/careers/')),
+            array('title' => 'Gallery', 'url' => home_url('/gallery/')),
+            array('title' => 'Contact Us', 'url' => home_url('/contact-us/')),
+        );
 
-    echo '<ul class="nav-menu" id="primary-menu">';
-    foreach ($menu_items as $item) {
-        $is_active = (is_front_page() && $item['title'] === 'Home') ? ' current-menu-item' : '';
-        echo '<li class="menu-item' . esc_attr($is_active) . '">';
-        echo '<a href="' . esc_url($item['url']) . '">' . esc_html($item['title']) . '</a>';
-        echo '</li>';
+        echo '<ul class="nav-menu" id="primary-menu">';
+        foreach ($menu_items as $item) {
+            $is_active = (is_front_page() && $item['title'] === 'Home') ? ' current-menu-item' : '';
+            echo '<li class="menu-item' . esc_attr($is_active) . '">';
+            echo '<a href="' . esc_url($item['url']) . '">' . esc_html($item['title']) . '</a>';
+            echo '</li>';
+        }
+        echo '</ul>';
     }
-    echo '</ul>';
 }
 
 /**
  * Fallback menu for footer
  */
-function imatutu_default_footer_menu() {
-    $menu_items = array(
-        array('title' => 'Home', 'url' => home_url('/')),
-        array('title' => 'About Us', 'url' => home_url('/about-us/')),
-        array('title' => 'Careers', 'url' => home_url('/careers/')),
-        array('title' => 'Gallery', 'url' => home_url('/gallery/')),
-        array('title' => 'Contact Us', 'url' => home_url('/contact-us/')),
-    );
+if (!function_exists('imatutu_default_footer_menu')) {
+    function imatutu_default_footer_menu() {
+        $menu_items = array(
+            array('title' => 'Home', 'url' => home_url('/')),
+            array('title' => 'About Us', 'url' => home_url('/about-us/')),
+            array('title' => 'Careers', 'url' => home_url('/careers/')),
+            array('title' => 'Gallery', 'url' => home_url('/gallery/')),
+            array('title' => 'Contact Us', 'url' => home_url('/contact-us/')),
+        );
 
-    echo '<ul class="footer-links-list">';
-    foreach ($menu_items as $item) {
-        echo '<li><a href="' . esc_url($item['url']) . '">' . esc_html($item['title']) . '</a></li>';
+        echo '<ul class="footer-links-list">';
+        foreach ($menu_items as $item) {
+            echo '<li><a href="' . esc_url($item['url']) . '">' . esc_html($item['title']) . '</a></li>';
+        }
+        echo '</ul>';
     }
-    echo '</ul>';
 }
 
 /**
