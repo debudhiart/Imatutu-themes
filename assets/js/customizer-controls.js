@@ -146,21 +146,34 @@ console.log('%c[Imatutu Customizer]%c Controls script loaded.', 'color: #1559ED;
         }
     });
 
-    // 5. Auto-Recovery Watchdog: Unlocks Customizer UI if stuck in loading state
+    // 5. Auto-Recovery Watchdog: Unlocks Customizer UI CSS if stuck in loading state
+    //    NOTE: We do NOT call api.trigger('ready') here because wp.customize is not fully
+    //    initialized when _wpCustomizeSettings is undefined — calling trigger('ready') early
+    //    causes customize-widgets.min.js to crash with "Cannot read properties of undefined".
     $(function() {
         setTimeout(function() {
+            var settingsDefined = (typeof window._wpCustomizeSettings !== 'undefined' && window._wpCustomizeSettings !== null);
+
             if (!$('body').hasClass('ready')) {
-                console.warn('%c[Imatutu Customizer]%c Auto-Recovery triggered: Body still lacks .ready class after 2s. Forcing ready state...', 'color: #DC2626; font-weight: bold;', 'color: inherit;');
-                $('body').addClass('ready');
-
-                if (api.reflowPaneContents) {
-                    api.reflowPaneContents();
+                if (!settingsDefined) {
+                    // _wpCustomizeSettings failed to load — the server-side serialization did not
+                    // complete. We can only show a helpful message; we cannot fake a working sidebar.
+                    console.error('%c[Imatutu Customizer]%c FATAL: _wpCustomizeSettings was never defined. WordPress Core serialize_pane_settings() did not complete on the server. Check PHP error logs, memory_limit, and max_execution_time.', 'color: #DC2626; font-weight: bold;', 'color: inherit;');
+                    // Add minimal CSS override so the page doesn't stay invisible
+                    $('<style>')
+                        .text('body.wp-customizer:not(.ready) #customize-controls .customize-pane-parent { display: block !important; }')
+                        .appendTo('head');
+                    console.warn('[Imatutu Customizer] Applied CSS-only fallback. Sidebar may be empty — the real fix is reducing PHP control count.');
+                } else {
+                    // Settings loaded but ready never fired — safe to force ready
+                    console.warn('%c[Imatutu Customizer]%c Auto-Recovery: settings exist but body lacks .ready. Forcing reflow only.', 'color: #D97706; font-weight: bold;', 'color: inherit;');
+                    $('body').addClass('ready');
+                    if (api.reflowPaneContents) {
+                        api.reflowPaneContents();
+                    }
                 }
-                if (api.trigger) {
-                    api.trigger('ready');
-                }
 
-                // If document title is stuck on "Loading...", restore site title
+                // Restore tab title
                 if (document.title && document.title.indexOf('Loading') !== -1) {
                     document.title = document.title.replace(/Loading…|Loading\.\.\./gi, 'Imatutu');
                 }
@@ -177,5 +190,6 @@ console.log('%c[Imatutu Customizer]%c Controls script loaded.', 'color: #1559ED;
             }
         }, 2000);
     });
+
 
 })(jQuery, window.wp);
