@@ -1,486 +1,963 @@
-# SPESIFIKASI DAN PERENCANAAN PENGEMBANGAN: ADVANCED WORDPRESS CUSTOMIZER & MODULAR LAYOUT BUILDER (IMATUTU THEME)
+# PANDUAN IMPLEMENTASI TEKNIS: REFAKTOR TEMA IMATUTU
+## "Lean Dedicated Customizer" (Solusi Anti-Crash & Ringan untuk Hosting Plesk)
 
-**Target Repositori**: `debudhiart/Imatutu-themes`  
-**Branch Pengembangan**: `development` (Target PR ke `origin`)  
-**Versi Tema**: `2.0.1`  
-**Lokasi Akses**: WordPress Admin Dashboard > **Appearance (Tampilan)** > **Customize (Sesuaikan)** (`WP_Customize_Manager`)  
-**Target Pelaksana**: Junior Web Programmer / Model AI Berbiaya Hemat (Prompt/Instruction-Ready)  
-**Tujuan Dokumen**: Memberikan panduan arsitektur, dokumentasi fitur lengkap berilustrasi, serta tahapan eksekusi prosedural *step-by-step* yang presisi tanpa ambiguitas teknis.
+> **Dokumen ini ditujukan untuk**: Junior Web Programmer atau Model AI.  
+> **Tujuan**: Memperbaiki masalah Customizer WordPress yang membeku (*blank/freeze screen*), membuang modul *over-engineered* yang membebani server, dan mewujudkan antarmuka kustomisasi visual yang ringan, cepat, dan 100% stabil dengan tetap mempertahankan konten asli Imatutu.
 
 ---
 
-## DAFTAR ISI
-1. [Ringkasan & Filosofi Desain Tema](#1-ringkasan--filosofi-desain-tema)
-2. [Arsitektur Direktori & Konvensi File](#2-arsitektur-direktori--konvensi-file)
-3. [Katalog & Penjelasan Fitur Lengkap](#3-katalog--penjelasan-fitur-lengkap)
-   - 3.1 [Typography Engine](#31-typography-engine)
-   - 3.2 [Color Palette & Theme Presets System](#32-color-palette--theme-presets-system)
-   - 3.3 [Modular Layout Builder (Grid & Section Engine)](#33-modular-layout-builder-grid--section-engine)
-   - 3.4 [Koleksi 10 Komponen Modular (Component Library)](#34-koleksi-10-komponen-modular-component-library)
-   - 3.5 [Live Preview Realtime & Selective Refresh](#35-live-preview-realtime--selective-refresh)
-   - 3.6 [Resilient Native Controls Engine (Anti-Crash Architecture)](#36-resilient-native-controls-engine-anti-crash-architecture)
-4. [Ilustrasi & Diagram Arsitektur Visual](#4-ilustrasi--diagram-arsitektur-visual)
-   - 4.1 [Diagram Aliran Data Customizer (Mermaid Flowchart)](#41-diagram-aliran-data-customizer-mermaid-flowchart)
-   - 4.2 [Diagram Hierarki Panel & Section](#42-diagram-hierarki-panel--section)
-   - 4.3 [Wireframe Visual Layout Grid Kolom (Desktop vs Mobile)](#43-wireframe-visual-layout-grid-kolom-desktop-vs-mobile)
-   - 4.4 [Diagram Aliran Variabel CSS Dinamis](#44-diagram-aliran-variabel-css-dinamis)
-5. [Pedoman Khusus untuk Junior Programmer & Model AI](#5-pedoman-khusus-untuk-junior-programmer--model-ai)
-   - 5.1 [Daftar Pantangan Utama (Anti-Patterns)](#51-daftar-pantangan-utama-anti-patterns)
-   - 5.2 [Aturan Standar Sanitasi & Keamanan Data](#52-aturan-standar-sanitasi--keamanan-data)
-   - 5.3 [Prosedur Validasi Mandiri Sebelum Commit](#53-prosedur-validasi-mandiri-sebelum-commit)
-6. [Tahapan Implementasi Step-by-Step (Work Breakdown Structure)](#6-tahapan-implementasi-step-by-step-work-breakdown-structure)
-   - [Fase 1: Registrasi Enqueue & Engine Core](#fase-1-registrasi-enqueue--engine-core)
-   - [Fase 2: Implementasi Palette & Typography Engine](#fase-2-implementasi-palette--typography-engine)
-   - [Fase 3: Registrasi Panel, Section & Native Controls](#fase-3-registrasi-panel-section--native-controls)
-   - [Fase 4: Pembuatan Template Renderer Komponen](#fase-4-pembuatan-template-renderer-komponen)
-   - [Fase 5: Desain CSS Grid & Variabel Dinamis](#fase-5-desain-css-grid--variabel-dinamis)
-   - [Fase 6: Live Preview Realtime Script](#fase-6-live-preview-realtime-script)
-   - [Fase 7: Integrasi ke Template Beranda](#fase-7-integrasi-ke-template-beranda)
-   - [Fase 8: Packaging POSIX ZIP & QA Validation](#fase-8-packaging-posix-zip--qa-validation)
-7. [Checklist Pengujian & Kriteria Keberhasilan (Definition of Done)](#7-checklist-pengujian--kriteria-keberhasilan-definition-of-done)
+## 1. LAMPIRAN ILUSTRASI TAMPILAN AKHIR (TARGET UI)
+
+Gunakan ilustrasi berikut sebagai acuan visual hasil akhir yang harus dicapai:
+
+### A. Tampilan UI WordPress Customizer & Live Preview (Target Utama)
+Sidebar kiri menampilkan panel kustomisasi native yang bersih dan terstruktur (*Imatutu Theme Settings*), terbagi ke dalam 7 accordion seksi. Pratinjau di sebelah kanan merespons perubahan teks dan warna secara *real-time*.
+
+![Target UI Customizer & Live Preview](assets/images/customizer-ui-mockup.jpg)
 
 ---
 
-## 1. RINGKASAN & FILOSOFI DESAIN TEMA
+### B. Tampilan Halaman Depan Website Modern (Front-End Result)
+Desain korporat modern bergaya enterprise ala Pertamina.com dengan navigasi *glassmorphism*, hero bernilai SEO tinggi, 3 kartu layanan bento-grid, metrik statistik, dan logo partner.
 
-Tema **Imatutu Modern Corporate** dirancang khusus untuk memenuhi standar situs web korporasi besar, enterprise, dan BUMN (terinspirasi dari karakter desain bersih, kredibel, dan berwibawa seperti *Pertamina.com*). 
-
-### Karakteristik & Nilai Unggulan:
-1. **Zero External Builder Bloat**: 100% menggunakan native **WordPress Customizer API** (`WP_Customize_Manager`). Tidak memerlukan plugin berat seperti *Elementor*, *WPBakery*, atau *Divi* yang memperlambat website dan menyisakan database query berlebih.
-2. **Ultra High Performance**: Waktu muat halaman sangat cepat (PageSpeed 95+), payload aset minimal, dan memanfaatkan sistem variabel CSS terkompilasi murni.
-3. **Content Administrator Friendly**: Staf non-teknis dapat mengubah teks, gambar, susunan kolom, tipografi, dan palet warna dalam hitungan detik tanpa menyentuh satu baris kode HTML pun.
-4. **Shared Hosting Resilience**: Kode dioptimalkan secara ketat untuk berjalan mulus di server dengan spesifikasi terbatas (`memory_limit = 128M`, `max_execution_time = 30s`) tanpa mengalami masalah output buffer truncation atau kegagalan serialisasi JSON.
+![Target Tampilan Depan Website](assets/images/website-redesign-preview.jpg)
 
 ---
 
-## 2. ARSITEKTUR DIREKTORI & KONVENSI FILE
+### C. Komparasi Visual Sebelum vs Sesudah Perbaikan
+Transformasi dari website lama yang kaku dan lambat menjadi portal BPO korporat berkecepatan tinggi.
 
-Struktur direktori tema disusun secara modular dan clean architecture:
-
-```
-imatutu-theme/
-├── assets/
-│   ├── css/
-│   │   ├── main.css                   # Stylesheet dasar tema (reset, navbar, footer, typography)
-│   │   ├── builder.css                # Styling grid builder, kolom responsif, & komponen modular
-│   │   └── customizer-controls.css    # Styling kustom sidebar kontrol di wp-admin
-│   ├── js/
-│   │   ├── main.js                    # Script interaktif frontend umum (mobile menu, sticky header)
-│   │   ├── builder-frontend.js        # Script komponen frontend (accordion toggle, lightbox modal)
-│   │   ├── builder-preview.js         # Script live preview postMessage di iframe Customizer
-│   │   ├── customizer-controls.js     # Script telemetry, auto-sync palet, & show/hide field
-│   │   └── customizer-preview.js      # Script live preview legacy/bawaan
-│   └── images/
-│       └── logo.svg                   # Brand asset default
-├── inc/
-│   ├── customizer.php                 # Registrasi utama panel, section, dan native controls
-│   ├── customizer-typography.php      # Engine Google Fonts & dynamic CSS generator
-│   ├── customizer-palettes.php        # Engine preset warna & mapping variabel CSS
-│   ├── customizer-layout-engine.php   # Controller modular layout builder & dynamic sections
-│   └── custom-controls/               # Kelas kontrol khusus (opsional/arsip)
-├── template-parts/
-│   ├── home/                          # Komponen statis bawaan beranda
-│   │   ├── section-hero.php           # Banner hero utama
-│   │   ├── section-services.php       # Ringkasan layanan utama
-│   │   ├── section-stats.php          # Counter statistik korporasi
-│   │   └── section-clients.php        # Logo partner / klien korporasi
-│   └── builder/                       # Renderer dinamis modular builder
-│       ├── section-wrapper.php        # Pembungkus section (container, background, padding)
-│       ├── row-column.php             # Grid & Flex column container
-│       ├── component-heading.php      # Renderer heading H1-H6
-│       ├── component-paragraph.php    # Renderer paragraf & WYSIWYG
-│       ├── component-image.php        # Renderer gambar responsif & lightbox
-│       ├── component-video.php        # Renderer video (YouTube, Vimeo, MP4)
-│       ├── component-button.php       # Renderer tombol aksi & CTA
-│       ├── component-form.php         # Renderer formulir (WPForms / CF7)
-│       ├── component-iconbox.php      # Renderer kartu fitur ber-ikon SVG
-│       ├── component-counter.php      # Renderer statistik metrik
-│       └── component-accordion.php    # Renderer FAQ / lipatan teks
-├── 404.php                            # Template halaman error 404
-├── footer.php                         # Template footer global
-├── front-page.php                     # Orchestrator halaman depan (home)
-├── functions.php                      # Inisialisasi tema, enqueue scripts, & hooks
-├── header.php                         # Template header & navigasi global
-├── index.php                          # Fallback template
-├── page.php                           # Template halaman standar
-├── screenshot.png                     # Thumbnail preview tema di WordPress
-├── style.css                          # Metadata tema & deklarasi versi
-└── build-zip.php                      # Skrip packaging zip standar POSIX otomatis
-```
+![Komparasi Sebelum vs Sesudah](assets/images/before-after-comparison.jpg)
 
 ---
 
-## 3. KATALOG & PENJELASAN FITUR LENGKAP
+## 2. ANALISIS AKAR MASALAH (MENGAPA CUSTOMIZER SAAT INI BLANK?)
 
-### 3.1 Typography Engine
-- **Lokasi File**: [`inc/customizer-typography.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-typography.php)
-- **Pilihan Font**:
-  - `Plus Jakarta Sans` (Default - Modern Corporate)
-  - `Inter` (Sleek Clean Sans)
-  - `Roboto` (Neutral Enterprise)
-  - `Poppins` (Geometric Friendly)
-  - `Outfit` (Modern Tech Look)
-  - `System Sans-Serif` (Zero-latency fallback)
-- **Pengaturan Ukuran (Font Scale)**:
-  - Heading 1 (`typo_h1_size`): 32px – 72px (Default: 48px)
-  - Heading 2 (`typo_h2_size`): 24px – 54px (Default: 36px)
-  - Heading 3 (`typo_h3_size`): 18px – 36px (Default: 24px)
-  - Body Text (`typo_body_size`): 14px – 20px (Default: 16px)
-  - Line Height (`typo_body_line_height`): 1.2 – 2.2 (Default: 1.6)
-- **Mekanisme Kerja**: Fungsi `imatutu_enqueue_google_fonts()` menyusun URL Google Fonts v2 secara dinamis berdasarkan font yang dipilih, lalu `imatutu_get_typography_css()` menginjeksi variabel CSS langsung ke header.
+Berdasarkan investigasi teknis pada kode sumber dan server hosting:
+1. **Over-Engineering (Layout Builder Bloat)**:
+   File `inc/customizer-layout-engine.php` (642 baris) dan folder `template-parts/builder/` mencoba membangun *mini-page-builder* di dalam Customizer dengan mendaftarkan lebih dari **200+ kontrol dinamis**.
+2. **Limitasi Server Hosting**:
+   Server hosting (Plesk, PHP 8.2) memiliki batasan `memory_limit` 128MB dan `max_execution_time` 30s. Saat WordPress mencoba mengonversi ratusan kontrol tersebut menjadi JSON (`wp_json_encode`), server kehabisan memori atau mengalami timeout.
+3. **Script Watchdog Merusak Siklus Ready**:
+   Pada `assets/js/customizer-controls.js` terdapat fungsi `setTimeout(..., 2000)` yang memaksa menghapus class loading setelah 2 detik. Hal ini memotong proses inisialisasi iframe WordPress secara prematur, menyebabkan layar membeku dalam kondisi putih polos.
 
-### 3.2 Color Palette & Theme Presets System
-- **Lokasi File**: [`inc/customizer-palettes.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-palettes.php)
-- **Preset 1-Klik Siap Pakai**:
-  1. **Pertamina Blue (Corporate)**: Primary `#1559ED`, Secondary `#0B192C`, Accent `#E21F23`, Background Surface `#F8FAFC`.
-  2. **Executive Midnight Navy**: Primary `#2563EB`, Secondary `#030712`, Accent `#F59E0B`, Background Surface `#F1F5F9`.
-  3. **Emerald Eco Enterprise**: Primary `#059669`, Secondary `#064E3B`, Accent `#10B981`, Background Surface `#F0FDF4`.
-  4. **Modern Minimalist Slate**: Primary `#0F172A`, Secondary `#334155`, Accent `#64748B`, Background Surface `#F8FAFC`.
-- **Pengaturan Warna Independen**: Administrator dapat menimpa warna apapun menggunakan 9 color picker independen (Primary, Primary Hover, Secondary, Accent, Background Main, Background Surface, Text Main, Text Muted, Border).
-- **Variabel CSS Global**: Menghasilkan token warna di `:root` (`--color-primary`, `--color-secondary`, dll) yang sinkron di seluruh komponen.
-
-### 3.3 Modular Layout Builder (Grid & Section Engine)
-- **Lokasi File**: [`inc/customizer-layout-engine.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-layout-engine.php)
-- **Kapasitas Section**: Mendukung 2 Section Modular Dinamis (dapat diperluas hingga 5) yang dirender di antara konten beranda.
-- **Pilihan Tata Letak (Grid Layout)**:
-  - `col-1`: 1 Kolom Penuh (100%)
-  - `col-2`: 2 Kolom Seimbang (50% : 50%)
-  - `col-3`: 3 Kolom Seimbang (33.3% : 33.3% : 33.3%)
-  - `col-4`: 4 Kolom Seimbang (25% : 25% : 25% : 25%)
-  - `col-1-2`: Asimetris Rasio Emas (33.3% Kiri : 66.6% Kanan)
-  - `col-2-1`: Asimetris Rasio Emas (66.6% Kiri : 33.3% Kanan)
-- **Pengaturan Spasi & Tampilan**:
-  - Pilihan Background: *Pure White*, *Soft Slate*, *Deep Navy*, *Soft Primary Tint*.
-  - Padding Vertikal: *Compact* (40px), *Standard* (80px), *Generous* (120px).
-  - Jarak Kolom (Gap): 0px, 16px, 24px, 32px, 48px.
-  - Perataan Vertikal: *Top*, *Center*, *Stretch*.
-
-### 3.4 Koleksi 10 Komponen Modular (Component Library)
-Setiap kolom pada layout di atas dapat memuat salah satu dari 10 komponen independen:
-
-| No | Tipe Komponen | File Renderer | Kemampuan & Opsi Pengaturan |
-|---|---|---|---|
-| 1 | **Heading** | `component-heading.php` | Teks judul, pilihan tag semantik (H1–H4), alignment (kiri/tengah/kanan), garis aksen dekoratif bawah. |
-| 2 | **Paragraph** | `component-paragraph.php` | Isi teks deskripsi, ukuran teks (*small, regular, lead*), alignment teks. |
-| 3 | **Image** | `component-image.php` | Upload media WP, alt text, rasio aspek (16:9, 4:3, 1:1, auto), border radius (none, md, xl, full), link URL, pop-up lightbox. |
-| 4 | **Video** | `component-video.php` | Video embed responsif (YouTube, Vimeo) atau video HTML5 langsung (.mp4), rasio aspek 16:9/4:3, toggle autoplay muted. |
-| 5 | **Button / CTA** | `component-button.php` | Label tombol, URL tujuan, gaya tombol (*primary, secondary, outline, ghost*), ukuran (*sm, md, lg*), buka tab baru (`_blank`). |
-| 6 | **Form** | `component-form.php` | Integrasi WPForms otomatis dari database atau shortcode form pihak ketiga (Contact Form 7), opsi bingkai kartu modern berbayang. |
-| 7 | **Icon Box** | `component-iconbox.php` | Pilihan preset icon SVG (phone, monitor, shield, chart, map, clock, user, file), judul kartu, deskripsi ringkas, tautan klik. |
-| 8 | **Counter** | `component-counter.php` | Angka metrik (misal: "99.9%", "250+"), label indikator, subteks pelengkap. |
-| 9 | **Accordion** | `component-accordion.php` | 3 pasang pertanyaan & jawaban (FAQ) interaktif dengan animasi expand/collapse halus. |
-| 10 | **None** | — | Kolom dikosongkan (berguna untuk layout asimetris dengan ruang bernapas). |
-
-### 3.5 Live Preview Realtime & Selective Refresh
-- **Lokasi File**: [`assets/js/builder-preview.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/builder-preview.js)
-- Menggunakan transport `postMessage` pada pengaturan warna, tipografi, dan konten teks sehingga perubahan langsung terlihat seketika pada iframe preview tanpa me-reload seluruh halaman.
-- Untuk pengaturan layout grid yang kompleks, selective refresh memperbarui kontainer kolom secara cerdas.
-
-### 3.6 Resilient Native Controls Engine (Anti-Crash Architecture)
-- **Pelajaran Krusial**: Pada versi awal, penggunaan custom control class PHP turunan `WP_Customize_Control` dengan properti internal tambahan menyebabkan fungsi `wp_json_encode()` pada fungsi bawaan WordPress core `customize_pane_settings()` gagal secara diam-diam (*silent failure*).
-- Akibatnya, variabel JavaScript `window._wpCustomizeSettings` tidak pernah dicetak ke HTML, menyebabkan halaman Customizer macet di status *"Loading..."* secara permanen.
-- **Solusi Stabil**: Menggunakan **100% Native WP Controls** (`select`, `color`, `number`, `text`, `textarea`, `checkbox`, `image`). Semua kebutuhan visual (seperti badge px atau selektor preset) dioperasikan melalui layer JavaScript ringan di [`assets/js/customizer-controls.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/customizer-controls.js).
+**Kesimpulan Solusi**: Sederhanakan Customizer menjadi **"Lean Dedicated Customizer"** dengan hanya mempertahankan **~45 kontrol native WordPress murni** untuk konten riil Imatutu.
 
 ---
 
-## 4. ILUSTRASI & DIAGRAM ARSITEKTUR VISUAL
-
-### 4.1 Diagram Aliran Data Customizer (Mermaid Flowchart)
+## 3. RENCANA TINDAKAN (ACTION PLAN)
 
 ```mermaid
 flowchart TD
-    subgraph WP_Backend["WordPress Core & Theme Engine (PHP)"]
-        A["customize_register Hook"] --> B["inc/customizer.php"]
-        B --> C["inc/customizer-palettes.php"]
-        B --> D["inc/customizer-typography.php"]
-        B --> E["inc/customizer-layout-engine.php"]
-        
-        C & D & E --> F["WP_Customize_Manager"]
-        F --> G["customize_pane_settings()"]
-        G --> H["JSON Serialization (74 KB Safe Payload)"]
+    subgraph Delete["Langkah 1: Hapus File Bloat"]
+        D1["inc/customizer-layout-engine.php"]
+        D2["assets/js/customizer-controls.js"]
+        D3["assets/css/customizer-controls.css"]
+        D4["assets/js/builder-frontend.js"]
+        D5["assets/js/builder-preview.js"]
+        D6["assets/css/builder.css"]
+        D7["template-parts/builder/* (Semua File)"]
     end
 
-    subgraph Browser_Admin["Admin Panel Customizer UI"]
-        H --> I["HTML Script Tag: var _wpCustomizeSettings"]
-        I --> J["wp.customize JS Engine Initialized"]
-        J --> K["assets/js/customizer-controls.js (Telemetry & Auto-Sync)"]
-        K --> L["Staff Manipulates UI (Colors, Fonts, Layouts)"]
+    subgraph Refactor["Langkah 2: Perbarui File Inti"]
+        F1["inc/customizer.php (Tulis ulang murni 7 seksi)"]
+        F2["functions.php (Bersihkan enqueue script builder)"]
+        F3["front-page.php (Hapus loop builder dinamis)"]
     end
 
-    subgraph Preview_Iframe["Live Preview Iframe (Frontend)"]
-        L -- postMessage Event --> M["assets/js/builder-preview.js"]
-        M --> N["DOM Injection: Realtime CSS Variables & Text Updates"]
-        L -- Save & Publish --> O["Database wp_options (theme_mods)"]
-        O --> P["front-page.php & template-parts/builder/"]
-    end
-```
-
-### 4.2 Diagram Hierarki Panel & Section
-
-```
-[WP Customizer Root]
-│
-├── [Panel: Imatutu Theme Settings] (priority: 25)
-│   ├── Section 1: Colors & Brand Identity (sec_imatutu_colors)
-│   │   ├── 1-Click Preset (pertamina_blue, executive_navy, emerald, slate)
-│   │   └── 9 Color Pickers (primary, secondary, accent, bg, surface, text, border)
-│   │
-│   ├── Section 2: Typography & Google Fonts (sec_imatutu_typography)
-│   │   ├── Font Families (Heading & Body font dropdown)
-│   │   └── Scale Controls (H1, H2, H3, Body Size, Line Height)
-│   │
-│   ├── Section 3: Header & Navigation (sec_imatutu_header)
-│   │   └── Top Bar, Contact Phone, Email, CTA Button
-│   │
-│   ├── Section 4: Hero Banner (sec_imatutu_hero)
-│   │   └── Headline, Subtitle, CTA Links, Background Image
-│   │
-│   └── Section 5: Services & Core Business (sec_imatutu_services)
-│       └── Title, Subtitle, 6 Modular Service Cards
-│
-└── [Panel: Imatutu Layout & Page Builder] (priority: 28)
-    ├── Section: Modular Section 1 (sec_builder_s1)
-    │   ├── Enable / Disable Toggle
-    │   ├── Background Type (White, Slate, Dark Navy, Primary Tint)
-    │   ├── Vertical Padding (Small, Medium, Large)
-    │   ├── Grid Layout (col-1, col-2, col-3, col-4, col-1-2, col-2-1)
-    │   ├── Grid Spacing Gap (0px, 16px, 24px, 32px, 48px)
-    │   ├── Column 1 Type & Settings (Heading, Paragraph, Button, Image, Video, Form, etc.)
-    │   └── Column 2 Type & Settings (...)
-    │
-    └── Section: Modular Section 2 (sec_builder_s2)
-        └── [Struktur Pengaturan Sama Persis dengan Section 1]
-```
-
-### 4.3 Wireframe Visual Layout Grid Kolom (Desktop vs Mobile)
-
-```
-====================================================================================
-DESKTOP VIEW (Lebar Layar > 900px)
-====================================================================================
-
-1. [col-1] Satu Kolom Penuh:
-   ┌───────────────────────────────────────────────────────────────────────────────┐
-   │                                 KOLOM 1 (100%)                                │
-   └───────────────────────────────────────────────────────────────────────────────┘
-
-2. [col-2] Dua Kolom Sama Besar:
-   ┌───────────────────────────────────────┬───────────────────────────────────────┐
-   │              KOLOM 1 (50%)            │              KOLOM 2 (50%)            │
-   └───────────────────────────────────────┴───────────────────────────────────────┘
-
-3. [col-3] Tiga Kolom Seimbang:
-   ┌───────────────────────┬───────────────────────┬───────────────────────────────┐
-   │      KOLOM 1 (33%)    │      KOLOM 2 (33%)    │         KOLOM 3 (33%)         │
-   └───────────────────────┴───────────────────────┴───────────────────────────────┘
-
-4. [col-1-2] Asimetris Modern (Rasio 1 : 2):
-   ┌───────────────────────────┬───────────────────────────────────────────────────┐
-   │  KOLOM 1: Teks/CTA (33%)  │           KOLOM 2: Media / Video (66%)            │
-   └───────────────────────────┴───────────────────────────────────────────────────┘
-
-====================================================================================
-SMARTPHONE VIEW (Lebar Layar <= 640px) - Otomatis Stack 1 Kolom Vertikal
-====================================================================================
-   ┌───────────────────────────────────────────────────┐
-   │              KOLOM 1 (100% Width)                 │
-   └───────────────────────────────────────────────────┘
-   ┌───────────────────────────────────────────────────┐
-   │              KOLOM 2 (100% Width)                 │
-   └───────────────────────────────────────────────────┘
-```
-
-### 4.4 Diagram Aliran Variabel CSS Dinamis
-
-```mermaid
-graph LR
-    subgraph Customizer_Input["Input Customizer (Admin)"]
-        P1["Color Preset Active"]
-        P2["Custom Hex Colors"]
-        P3["Font Family & Sizes"]
+    subgraph Build["Langkah 3: Packaging & Testing"]
+        B1["Linting sintaks PHP (php -l)"]
+        B2["Jalankan build-zip.php"]
+        B3["Upload imatutu-theme.zip ke WP Admin"]
     end
 
-    subgraph PHP_Generator["PHP Generator (functions.php)"]
-        G1["imatutu_get_color_css()"]
-        G2["imatutu_get_typography_css()"]
-    end
-
-    subgraph CSS_Variables[":root Style Block (Injected)"]
-        V1["--color-primary: #1559ED"]
-        V2["--color-secondary: #0B192C"]
-        V3["--color-accent: #E21F23"]
-        V4["--font-heading: 'Plus Jakarta Sans'"]
-        V5["--h1-size: 48px"]
-    end
-
-    subgraph Frontend_Elements["Elemen Tampilan Frontend"]
-        E1["Tombol CTA & Link Brand"]
-        E2["Judul Heading H1-H6"]
-        E3["Latar Belakang Container"]
-        E4["Kartu Layanan & Form Input"]
-    end
-
-    P1 & P2 --> G1 --> V1 & V2 & V3
-    P3 --> G2 --> V4 & V5
-    V1 & V2 & V3 --> E1 & E3 & E4
-    V4 & V5 --> E2
+    Delete --> Refactor --> Build
 ```
 
 ---
 
-## 5. PEDOMAN KHUSUS UNTUK JUNIOR PROGRAMMER & MODEL AI
+## 4. SPESIFIKASI FILE & KODE LENGKAP
 
-Dokumen ini ditujukan agar dapat dieksekusi langsung oleh programmer pemula atau model AI murah. Patuhi pedoman wajib berikut:
+### 4.1 File yang WAJIB DIHAPUS
+Hapus file dan folder berikut dari direktori tema:
+- `inc/customizer-layout-engine.php`
+- `assets/js/customizer-controls.js`
+- `assets/css/customizer-controls.css`
+- `assets/js/builder-frontend.js`
+- `assets/js/builder-preview.js`
+- `assets/css/builder.css`
+- Seluruh isi folder `template-parts/builder/` (dan foldernya)
 
-### 5.1 Daftar Pantangan Utama (Anti-Patterns)
-1. **DILARANG MENGGUNAKAN CUSTOM CONTROLS DENGAN PROPERTY BERLEBIHAN**:
-   - Jangan membuat class turunan `WP_Customize_Control` yang menambahkan properti array rumit ke JavaScript tanpa method `to_json()` yang benar. Ini adalah penyebab nomor 1 `wp_json_encode()` crash di WordPress Core.
-   - Gunakan tipe bawaan: `'type' => 'select'`, `'type' => 'number'`, `'type' => 'color'`, atau `WP_Customize_Color_Control`.
-2. **DILARANG MEMBUAT LOOP KONTROL DI ATAS 300 ITEM**:
-   - Jangan mendaftarkan 10 section x 6 kolom x 20 komponen secara langsung di PHP! Serialisasi JSON akan melampaui 128MB memori hosting. Batasi section builder aktif ke **2 section modular** (~248 kontrol total, payload aman 74 KB).
-3. **DILARANG MENGGUNAKAN RELATIVE PATH DI ZIP ARCHIVE**:
-   - Skrip build zip harus selalu menggunakan forward-slash (`/`) standar POSIX dan membungkus tema dalam folder tunggal `imatutu/` agar dikenali dengan benar oleh *Theme Upgrader*.
-4. **DILARANG MEMBIARKAN BLOK IF/PHP TERBUKA**:
-   - Setiap tag pembuka `<?php if (...) : ?>` atau `function (...) {` wajib ditutup dengan presisi untuk menghindari *Fatal Parse Error*.
+---
 
-### 5.2 Aturan Standar Sanitasi & Keamanan Data
-Setiap setting yang didaftarkan pada `$wp_customize->add_setting()` **WAJIB** menyertakan parameter `'sanitize_callback'`:
+### 4.2 File `front-page.php` (Ganti dengan Kode Ini)
+Bersihkan dari *loop* builder dinamis. Hanya merender 4 seksi utama:
 
-| Jenis Input | Callback Sanitasi Standar | Contoh Penggunaan |
-|---|---|---|
-| Text Singkat | `'sanitize_text_field'` | Judul heading, label tombol, nama section |
-| Kunci / Key / Slug | `'sanitize_key'` | Pilihan dropdown, tipe layout grid, tipe komponen |
-| Warna Hexadecimal | `'sanitize_hex_color'` | Warna primer, latar belakang, border |
-| Angka Bulat Positif | `'absint'` | Ukuran font (px), jarak gap, padding |
-| Angka Desimal | `'imatutu_sanitize_float'` | Line height (1.2 s/d 2.2) |
-| Checkbox / Toggle | `'imatutu_sanitize_checkbox'` | Status aktif/non-aktif section, lightbox toggle |
-| URL Tautan | `'esc_url_raw'` | Link tombol, URL YouTube/video |
-| Rich Text / Paragraf | `'wp_kses_post'` | Paragraf teks, formatting bold/italic |
+```php
+<?php
+/**
+ * The front page template file
+ *
+ * @package Imatutu
+ */
 
-### 5.3 Prosedur Validasi Mandiri Sebelum Commit
-Sebelum membuat commit atau pull request, wajib jalankan perintah verifikasi berikut:
-```bash
-# 1. Pastikan 0 syntax error pada semua berkas PHP
-php -l functions.php
-php -l inc/customizer.php
-php -l inc/customizer-palettes.php
-php -l inc/customizer-typography.php
-php -l inc/customizer-layout-engine.php
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-# 2. Build paket zip tema terbaru
-php build-zip.php
+get_header();
+?>
 
-# 3. Pastikan git working tree bersih
-git status
+<main id="primary" class="site-main">
+    <?php
+    get_template_part('template-parts/home/section', 'hero');
+    get_template_part('template-parts/home/section', 'services');
+    get_template_part('template-parts/home/section', 'stats');
+    get_template_part('template-parts/home/section', 'clients');
+    ?>
+</main>
+
+<?php
+get_footer();
 ```
 
 ---
 
-## 6. TAHAPAN IMPLEMENTASI STEP-BY-STEP (WORK BREAKDOWN STRUCTURE)
+### 4.3 File `functions.php` (Ganti dengan Kode Ini)
+Hapus seluruh referensi ke builder CSS/JS dan customizer-controls. Hanya memuat aset penting:
 
-Bagi pelaksana, ikuti urutan fase kerja secara berurutan dan disiplin:
+```php
+<?php
+/**
+ * Imatutu Modern Corporate functions and definitions
+ *
+ * @package Imatutu
+ */
 
-### FASE 1: Registrasi Enqueue & Engine Core
-- **Tujuan**: Mempersiapkan pemanggilan stylesheet dan script interaktif di frontend dan admin Customizer.
-- **Berkas yang Dikerjakan**: [`functions.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/functions.php)
-- **Instruksi**:
-  1. Pastikan boosting resource PHP aktif di awal `functions.php`:
-     ```php
-     if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
-         @ini_set('memory_limit', '256M');
-         @ini_set('max_execution_time', 120);
-     }
-     ```
-  2. Enqueue file `assets/css/builder.css` dan `assets/js/builder-frontend.js` pada hook `wp_enqueue_scripts`.
-  3. Hubungkan require file `inc/customizer.php` di akhir file `functions.php`.
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-### FASE 2: Implementasi Palette & Typography Engine
-- **Tujuan**: Membangun logika data warna preset dan font loader.
-- **Berkas yang Dikerjakan**:
-  - [`inc/customizer-palettes.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-palettes.php)
-  - [`inc/customizer-typography.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-typography.php)
-- **Instruksi**:
-  1. Definisikan array 4 palet warna dalam fungsi `imatutu_get_color_palettes()`.
-  2. Buat fungsi `imatutu_get_color_css()` untuk mengonversi nilai warna terpilih menjadi string CSS variables `:root { ... }`.
-  3. Buat fungsi `imatutu_get_typography_css()` untuk mengonversi setting font family dan size menjadi string CSS variables.
-  4. Enqueue dynamic style via `wp_add_inline_style('imatutu-main', $custom_css)`.
+if (!function_exists('imatutu_setup')) :
+    function imatutu_setup() {
+        load_theme_textdomain('imatutu', get_template_directory() . '/languages');
+        add_theme_support('automatic-feed-links');
+        add_theme_support('title-tag');
+        add_theme_support('post-thumbnails');
+        set_post_thumbnail_size(1200, 630, true);
 
-### FASE 3: Registrasi Panel, Section & Native Controls
-- **Tujuan**: Mendaftarkan antarmuka visual Customizer yang ringan dan tahan banting.
-- **Berkas yang Dikerjakan**:
-  - [`inc/customizer.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer.php)
-  - [`inc/customizer-layout-engine.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-layout-engine.php)
-- **Instruksi**:
-  1. Daftarkan panel utama `panel_imatutu` (Theme Settings) dan `panel_imatutu_builder` (Layout Builder).
-  2. Daftarkan section warna, tipografi, header, hero, dan services menggunakan kontrol native (`type => 'select'`, `WP_Customize_Color_Control`, `type => 'number'`).
-  3. Pada layout engine, buat loop section dinamis untuk 2 section modular ($s = 1 sampai 2).
-  4. Daftarkan pengaturan layout grid (`col-1` s/d `col-2-1`), spasi padding, background, dan tipe komponen per kolom.
+        add_theme_support('custom-logo', array(
+            'height'      => 80,
+            'width'       => 260,
+            'flex-height' => true,
+            'flex-width'  => true,
+            'unlink-homepage-logo' => false,
+        ));
 
-### FASE 4: Pembuatan Template Renderer Komponen
-- **Tujuan**: Membuat modul renderer PHP yang bersih, modular, dan terisolasi.
-- **Direktori**: `template-parts/builder/`
-- **Instruksi**:
-  1. `section-wrapper.php`: Membaca variabel `section_index`, mengecek status aktif, menentukan kelas background dan padding, lalu memanggil `row-column.php`.
-  2. `row-column.php`: Menentukan kelas grid CSS (`grid-col-1`, `grid-col-2`, dst) dan memanggil komponen anak berdasarkan nilai setting `builder_sec_{N}_col_{M}_type`.
-  3. Buat 9 file komponen spesifik (`component-heading.php`, `component-paragraph.php`, `component-button.php`, `component-image.php`, `component-video.php`, `component-form.php`, `component-iconbox.php`, `component-counter.php`, `component-accordion.php`).
-  4. Pastikan setiap komponen menyertakan sanitasi output (`esc_html`, `esc_attr`, `esc_url`, atau `wp_kses_post`).
+        register_nav_menus(array(
+            'primary' => esc_html__('Primary Navigation', 'imatutu'),
+            'footer'  => esc_html__('Footer Navigation', 'imatutu'),
+        ));
 
-### FASE 5: Desain CSS Grid & Variabel Dinamis
-- **Tujuan**: Membangun sistem grid murni tanpa CSS framework eksternal.
-- **Berkas yang Dikerjakan**: [`assets/css/builder.css`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/css/builder.css)
-- **Instruksi**:
-  1. Deklarasikan `.builder-grid` dengan `display: grid`.
-  2. Buat kelas `.grid-col-1` s/d `.grid-col-2-1` dengan `grid-template-columns`.
-  3. Tambahkan media query responsif:
-     - `@media (max-width: 900px)`: Kolom 3 & 4 menjadi 2 kolom.
-     - `@media (max-width: 640px)`: Seluruh grid runtuh (*collapse*) menjadi 1 kolom vertikal (`1fr !important`).
-  4. Tambahkan styling enterprise untuk formulir WPForms (`.builder-form-card`).
-  5. Tambahkan styling accordion dan transisi halus CSS.
+        add_theme_support('html5', array(
+            'search-form',
+            'comment-form',
+            'comment-list',
+            'gallery',
+            'caption',
+            'style',
+            'script',
+        ));
 
-### FASE 6: Live Preview Realtime Script
-- **Tujuan**: Memberikan respon instan pada layar saat admin mengubah nilai.
-- **Berkas yang Dikerjakan**:
-  - [`assets/js/builder-preview.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/builder-preview.js)
-  - [`assets/js/customizer-controls.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/customizer-controls.js)
-- **Instruksi**:
-  1. Di `builder-preview.js`: Tangkap event `wp.customize('setting_key', function(value) { value.bind(...) })` untuk warna primer, font family, heading text, dan button label.
-  2. Di `customizer-controls.js`: Pasang fungsi auto-sync preset palet (saat radio palet dipilih, otomatis memperbarui nilai color pickers terkait di memori admin).
-  3. Pasang watcher visibilitas: saat tipe komponen kolom dipilih (misal: `video`), otomatis sembunyikan kontrol komponen lain dan hanya tampilkan kontrol video.
+        add_theme_support('customize-selective-refresh-widgets');
+        add_theme_support('responsive-embeds');
+    }
+endif;
+add_action('after_setup_theme', 'imatutu_setup');
 
-### FASE 7: Integrasi ke Template Beranda
-- **Tujuan**: Menampilkan section dinamis di antara section beranda.
-- **Berkas yang Dikerjakan**: [`front-page.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/front-page.php)
-- **Instruksi**:
-  1. Tambahkan pemanggil loop builder section dinamis setelah section services:
-     ```php
-     for ($i = 1; $i <= 5; $i++) {
-         if (get_theme_mod("builder_sec_{$i}_enable", ($i <= 2))) {
-             set_query_var('section_index', $i);
-             get_template_part('template-parts/builder/section', 'wrapper');
-         }
-     }
-     ```
+/**
+ * Enqueue scripts and styles.
+ */
+if (!function_exists('imatutu_scripts')) {
+    function imatutu_scripts() {
+        // Google Fonts: Plus Jakarta Sans
+        wp_enqueue_style(
+            'imatutu-google-fonts',
+            'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap',
+            array(),
+            null
+        );
 
-### FASE 8: Packaging POSIX ZIP & QA Validation
-- **Tujuan**: Menghasilkan paket rilis yang siap diunggah ke WordPress tanpa error installer.
-- **Berkas yang Dikerjakan**: [`build-zip.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/build-zip.php)
-- **Instruksi**:
-  1. Pastikan versi di [`style.css`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/style.css) telah dinaikkan (misal: `2.0.1`).
-  2. Jalankan `php build-zip.php` untuk memproduksi berkas `imatutu.zip`.
-  3. Verifikasi bahwa file `imatutu.zip` memiliki folder pembungkus `imatutu/` dan berisi `style.css` valid di level pertama.
+        // Main Theme CSS
+        $css_ver = file_exists(get_template_directory() . '/assets/css/main.css') 
+            ? filemtime(get_template_directory() . '/assets/css/main.css') 
+            : '2.1.0';
+        wp_enqueue_style('imatutu-main', get_template_directory_uri() . '/assets/css/main.css', array('imatutu-google-fonts'), $css_ver);
+        wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main'), '2.1.0');
+
+        // Dynamic Customizer Styling (Colors & Typography)
+        $custom_css = '';
+        if (function_exists('imatutu_get_color_css')) {
+            $custom_css .= imatutu_get_color_css();
+        }
+        if (function_exists('imatutu_get_typography_css')) {
+            $custom_css .= imatutu_get_typography_css();
+        }
+        if (!empty($custom_css)) {
+            wp_add_inline_style('imatutu-main', $custom_css);
+        }
+
+        // Main Theme JavaScript (Vanilla JS for sticky header & mobile menu)
+        $js_ver = file_exists(get_template_directory() . '/assets/js/main.js') 
+            ? filemtime(get_template_directory() . '/assets/js/main.js') 
+            : '2.1.0';
+        wp_enqueue_script('imatutu-script', get_template_directory_uri() . '/assets/js/main.js', array(), $js_ver, true);
+    }
+}
+add_action('wp_enqueue_scripts', 'imatutu_scripts');
+
+/**
+ * Fallback menu when no WordPress menu is assigned yet
+ */
+if (!function_exists('imatutu_default_primary_menu')) {
+    function imatutu_default_primary_menu() {
+        $menu_items = array(
+            array('title' => 'Home', 'url' => home_url('/')),
+            array('title' => 'About Us', 'url' => home_url('/about-us/')),
+            array('title' => 'Careers', 'url' => home_url('/careers/')),
+            array('title' => 'Gallery', 'url' => home_url('/gallery/')),
+            array('title' => 'Contact Us', 'url' => home_url('/contact-us/')),
+        );
+
+        echo '<ul class="nav-menu" id="primary-menu">';
+        foreach ($menu_items as $item) {
+            $is_active = (is_front_page() && $item['title'] === 'Home') ? ' current-menu-item' : '';
+            echo '<li class="menu-item' . esc_attr($is_active) . '">';
+            echo '<a href="' . esc_url($item['url']) . '">' . esc_html($item['title']) . '</a>';
+            echo '</li>';
+        }
+        echo '</ul>';
+    }
+}
+
+/**
+ * Include Customizer
+ */
+require_once get_template_directory() . '/inc/customizer.php';
+```
 
 ---
 
-## 7. CHECKLIST PENGUJIAN & KRITERIA KEBERHASILAN (DEFINITION OF DONE)
+### 4.4 File `inc/customizer.php` (Ganti dengan Kode Ramping Ini)
+File ini hanya mendaftarkan 1 Panel dan 7 Seksi Native tanpa dependensi custom class:
 
-Setiap tahapan pengembangan dinyatakan selesai (*DONE*) jika dan hanya jika seluruh kriteria berikut terpenuhi:
+```php
+<?php
+/**
+ * Imatutu Theme Customizer - Lean Dedicated Edition
+ *
+ * @package Imatutu
+ */
 
-- [ ] **Bebas Error PHP**: Menjalankan `php -l` pada semua berkas `.php` menghasilkan output `No syntax errors detected`.
-- [ ] **Customizer Terbuka Cepat**: Halaman `wp-admin/customize.php` terbuka sempurna dalam < 3 detik tanpa status *Loading...* macet.
-- [ ] **Console Bersih**: Tidak ada pesan error merah `FATAL: _wpCustomizeSettings was never defined` atau JavaScript uncaught exception pada konsol browser.
-- [ ] **Sinkronisasi Palet 1-Klik**: Memilih preset (misal *Pertamina Blue* atau *Emerald Enterprise*) langsung memperbarui skema warna tema secara harmonis.
-- [ ] **Tipografi Dinamis**: Mengubah font family heading atau body memuat Google Fonts yang tepat dan mengubah tampilan secara konsisten.
-- [ ] **Manipulasi Grid**: Mengubah layout kolom dari `col-1` menjadi `col-2` atau `col-1-2` langsung memperbarui tata letak di layar.
-- [ ] **Uji Responsif Mobile**: Pada ukuran layar HP (< 640px), seluruh kolom grid otomatis tersusun vertikal secara rapi.
-- [ ] **Komponen Form & Video**: Embed YouTube/Vimeo berjalan responsif 16:9, dan shortcode formulir WPForms terintegrasi dengan styling enterprise.
-- [ ] **Instalasi Tema Valid**: Mengunggah file `imatutu.zip` melalui **Appearance > Themes > Add New > Upload Theme** berhasil 100% tanpa pesan error *"No valid plugins were found"* atau *"Missing style.css"*.
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+require_once get_template_directory() . '/inc/customizer-palettes.php';
+require_once get_template_directory() . '/inc/customizer-typography.php';
+
+function imatutu_customize_register($wp_customize) {
+
+    // -------------------------------------------------------------
+    // Main Customizer Panel
+    // -------------------------------------------------------------
+    $wp_customize->add_panel('panel_imatutu', array(
+        'title'       => esc_html__('Imatutu Theme Settings', 'imatutu'),
+        'description' => esc_html__('Configure visual styles, content, partners, contacts, and chatbot integration.', 'imatutu'),
+        'priority'    => 25,
+    ));
+
+    // =============================================================
+    // SECTION 1: Colors & Brand Identity
+    // =============================================================
+    $wp_customize->add_section('sec_imatutu_colors', array(
+        'title'    => esc_html__('1. Colors & Brand Identity', 'imatutu'),
+        'panel'    => 'panel_imatutu',
+        'priority' => 10,
+    ));
+
+    $wp_customize->add_setting('primary_color', array(
+        'default'           => '#1559ED',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'primary_color', array(
+        'label'    => esc_html__('Primary Corporate Color', 'imatutu'),
+        'section'  => 'sec_imatutu_colors',
+    )));
+
+    $wp_customize->add_setting('secondary_color', array(
+        'default'           => '#0B192C',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'secondary_color', array(
+        'label'    => esc_html__('Secondary Navy Color', 'imatutu'),
+        'section'  => 'sec_imatutu_colors',
+    )));
+
+    $wp_customize->add_setting('accent_color', array(
+        'default'           => '#E21F23',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'accent_color', array(
+        'label'    => esc_html__('Accent Color', 'imatutu'),
+        'section'  => 'sec_imatutu_colors',
+    )));
+
+    // =============================================================
+    // SECTION 2: Header Settings
+    // =============================================================
+    $wp_customize->add_section('sec_imatutu_header', array(
+        'title'    => esc_html__('2. Header & Navigation', 'imatutu'),
+        'panel'    => 'panel_imatutu',
+        'priority' => 20,
+    ));
+
+    $wp_customize->add_setting('header_brand_text', array(
+        'default'           => 'IMATUTU',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('header_brand_text', array(
+        'label'   => esc_html__('Brand Name Text', 'imatutu'),
+        'section' => 'sec_imatutu_header',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('header_subtitle', array(
+        'default'           => 'by PT Karya Antara Negeri | PT Karya Antara Benua',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('header_subtitle', array(
+        'label'   => esc_html__('Company Subtitle / Entity', 'imatutu'),
+        'section' => 'sec_imatutu_header',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('header_cta_text', array(
+        'default'           => 'Contact',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('header_cta_text', array(
+        'label'   => esc_html__('Header Button Label', 'imatutu'),
+        'section' => 'sec_imatutu_header',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('header_cta_link', array(
+        'default'           => 'https://imatutu.com/contact-us/',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('header_cta_link', array(
+        'label'   => esc_html__('Header Button URL', 'imatutu'),
+        'section' => 'sec_imatutu_header',
+        'type'    => 'url',
+    ));
+
+    // =============================================================
+    // SECTION 3: Hero Section
+    // =============================================================
+    $wp_customize->add_section('sec_imatutu_hero', array(
+        'title'    => esc_html__('3. Hero Section', 'imatutu'),
+        'panel'    => 'panel_imatutu',
+        'priority' => 30,
+    ));
+
+    $wp_customize->add_setting('hero_heading_1', array(
+        'default'           => 'The Trusted Choice For Your Business Support Requirements',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('hero_heading_1', array(
+        'label'   => esc_html__('Main Hero Title (H1)', 'imatutu'),
+        'section' => 'sec_imatutu_hero',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('hero_heading_2', array(
+        'default'           => 'Integrated Solutions for All Your Business Needs',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('hero_heading_2', array(
+        'label'   => esc_html__('Hero Subtitle', 'imatutu'),
+        'section' => 'sec_imatutu_hero',
+        'type'    => 'textarea',
+    ));
+
+    $wp_customize->add_setting('hero_bg_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'hero_bg_image', array(
+        'label'   => esc_html__('Hero Background Image', 'imatutu'),
+        'section' => 'sec_imatutu_hero',
+    )));
+
+    $wp_customize->add_setting('hero_cta_primary_text', array(
+        'default'           => 'Contact Us',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('hero_cta_primary_text', array(
+        'label'   => esc_html__('Primary Button Label', 'imatutu'),
+        'section' => 'sec_imatutu_hero',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('hero_cta_primary_link', array(
+        'default'           => 'https://imatutu.com/contact-us/',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('hero_cta_primary_link', array(
+        'label'   => esc_html__('Primary Button Link', 'imatutu'),
+        'section' => 'sec_imatutu_hero',
+        'type'    => 'url',
+    ));
+
+    $wp_customize->add_setting('hero_cta_secondary_text', array(
+        'default'           => 'Our Services',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('hero_cta_secondary_text', array(
+        'label'   => esc_html__('Secondary Button Label', 'imatutu'),
+        'section' => 'sec_imatutu_hero',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('hero_cta_secondary_link', array(
+        'default'           => '#services',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('hero_cta_secondary_link', array(
+        'label'   => esc_html__('Secondary Button Link', 'imatutu'),
+        'section' => 'sec_imatutu_hero',
+        'type'    => 'text',
+    ));
+
+    // =============================================================
+    // SECTION 4: Services Section
+    // =============================================================
+    $wp_customize->add_section('sec_imatutu_services', array(
+        'title'    => esc_html__('4. Services Section (3 Items)', 'imatutu'),
+        'panel'    => 'panel_imatutu',
+        'priority' => 40,
+    ));
+
+    $wp_customize->add_setting('services_subtitle', array(
+        'default'           => 'What We OFFER',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('services_subtitle', array(
+        'label'   => esc_html__('Section Subtitle', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('services_title', array(
+        'default'           => 'Taylor Made Solutions for Your Business',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('services_title', array(
+        'label'   => esc_html__('Section Main Title', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'text',
+    ));
+
+    // Service 1
+    $wp_customize->add_setting('service_1_title', array(
+        'default'           => 'Customer Service Support',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('service_1_title', array(
+        'label'   => esc_html__('Service 1: Title', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('service_1_desc', array(
+        'default'           => 'We provide 24/7 contact center services tailored to suit your industry needs from, handling inquiries, transport bookings, handling customer feedback and resolving issues promptly to ensure customer satisfaction. Our team is trained to deliver exceptional service in every interaction.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('service_1_desc', array(
+        'label'   => esc_html__('Service 1: Description', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'textarea',
+    ));
+
+    $wp_customize->add_setting('service_1_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'service_1_image', array(
+        'label'   => esc_html__('Service 1: Image', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+    )));
+
+    // Service 2
+    $wp_customize->add_setting('service_2_title', array(
+        'default'           => 'Full Technical Support',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('service_2_title', array(
+        'label'   => esc_html__('Service 2: Title', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('service_2_desc', array(
+        'default'           => 'Our experts offer reliable troubleshooting and technical assistance, for multiple systems helping clients resolve technical problems efficiently. We focus on quick solutions to minimize downtime.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('service_2_desc', array(
+        'label'   => esc_html__('Service 2: Description', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'textarea',
+    ));
+
+    $wp_customize->add_setting('service_2_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'service_2_image', array(
+        'label'   => esc_html__('Service 2: Image', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+    )));
+
+    // Service 3
+    $wp_customize->add_setting('service_3_title', array(
+        'default'           => 'Administration Support',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('service_3_title', array(
+        'label'   => esc_html__('Service 3: Title', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('service_3_desc', array(
+        'default'           => 'Full accounting services available, teamed up with data processing, general administration and customer service support',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('service_3_desc', array(
+        'label'   => esc_html__('Service 3: Description', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+        'type'    => 'textarea',
+    ));
+
+    $wp_customize->add_setting('service_3_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'service_3_image', array(
+        'label'   => esc_html__('Service 3: Image', 'imatutu'),
+        'section' => 'sec_imatutu_services',
+    )));
+
+    // =============================================================
+    // SECTION 5: Global Reach & Stats
+    // =============================================================
+    $wp_customize->add_section('sec_imatutu_stats', array(
+        'title'    => esc_html__('5. Global Reach & Stats', 'imatutu'),
+        'panel'    => 'panel_imatutu',
+        'priority' => 50,
+    ));
+
+    $wp_customize->add_setting('stats_title', array(
+        'default'           => 'Our Global Reach',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stats_title', array(
+        'label'   => esc_html__('Section Title', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('stats_desc', array(
+        'default'           => 'With numerous clients, successful projects and a wide reach, Imatutu is making a mark as the preferred outsourcing partner. We support our global clients, delivering excellence in every project. Our services span across multiple countries and multiple industries, helping businesses achieve their goals globally.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stats_desc', array(
+        'label'   => esc_html__('Section Description', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'textarea',
+    ));
+
+    $wp_customize->add_setting('stats_side_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'stats_side_image', array(
+        'label'   => esc_html__('Side Image (Global Reach)', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+    )));
+
+    // Metric 1
+    $wp_customize->add_setting('stat_1_number', array(
+        'default'           => '150+',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stat_1_number', array(
+        'label'   => esc_html__('Stat 1: Number', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'text',
+    ));
+    $wp_customize->add_setting('stat_1_label', array(
+        'default'           => 'Client',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stat_1_label', array(
+        'label'   => esc_html__('Stat 1: Label', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'text',
+    ));
+
+    // Metric 2
+    $wp_customize->add_setting('stat_2_number', array(
+        'default'           => '150+',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stat_2_number', array(
+        'label'   => esc_html__('Stat 2: Number', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'text',
+    ));
+    $wp_customize->add_setting('stat_2_label', array(
+        'default'           => 'Project',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stat_2_label', array(
+        'label'   => esc_html__('Stat 2: Label', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'text',
+    ));
+
+    // Metric 3
+    $wp_customize->add_setting('stat_3_number', array(
+        'default'           => '3',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stat_3_number', array(
+        'label'   => esc_html__('Stat 3: Number', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'text',
+    ));
+    $wp_customize->add_setting('stat_3_label', array(
+        'default'           => 'Country',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('stat_3_label', array(
+        'label'   => esc_html__('Stat 3: Label', 'imatutu'),
+        'section' => 'sec_imatutu_stats',
+        'type'    => 'text',
+    ));
+
+    // =============================================================
+    // SECTION 6: Partner & Client Logos
+    // =============================================================
+    $wp_customize->add_section('sec_imatutu_clients', array(
+        'title'    => esc_html__('6. Partner & Client Logos (9)', 'imatutu'),
+        'panel'    => 'panel_imatutu',
+        'priority' => 60,
+    ));
+
+    $wp_customize->add_setting('clients_section_title', array(
+        'default'           => 'Our Trusted Partners',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('clients_section_title', array(
+        'label'   => esc_html__('Section Heading', 'imatutu'),
+        'section' => 'sec_imatutu_clients',
+        'type'    => 'text',
+    ));
+
+    $default_partners = array(
+        1 => array('name' => 'Alert Taxis', 'url' => 'http://www.alerttaxis.co.nz'),
+        2 => array('name' => 'Canberra Elite', 'url' => 'http://www.canberraelite.com.au'),
+        3 => array('name' => 'NZTC', 'url' => 'http://www.nztc.net.nz'),
+        4 => array('name' => 'Aerial Capital Group', 'url' => 'http://www.aerialcapitalgroup.com.au'),
+        5 => array('name' => 'First Direct', 'url' => 'http://www.firstdirect.net.nz'),
+        6 => array('name' => 'PN Taxis', 'url' => 'http://www.pntaxis.co.nz'),
+        7 => array('name' => 'BusMe', 'url' => 'http://www.busme.com.au'),
+        8 => array('name' => 'Silver Service Canberra', 'url' => 'http://www.silverservicecanberra.com.au'),
+        9 => array('name' => 'QE Taxis', 'url' => 'http://www.qetaxis.com.au'),
+    );
+
+    for ($i = 1; $i <= 9; $i++) {
+        $wp_customize->add_setting("client_{$i}_name", array(
+            'default'           => $default_partners[$i]['name'],
+            'sanitize_callback' => 'sanitize_text_field',
+        ));
+        $wp_customize->add_control("client_{$i}_name", array(
+            'label'   => sprintf(esc_html__('Partner %d: Name', 'imatutu'), $i),
+            'section' => 'sec_imatutu_clients',
+            'type'    => 'text',
+        ));
+
+        $wp_customize->add_setting("client_{$i}_url", array(
+            'default'           => $default_partners[$i]['url'],
+            'sanitize_callback' => 'esc_url_raw',
+        ));
+        $wp_customize->add_control("client_{$i}_url", array(
+            'label'   => sprintf(esc_html__('Partner %d: Website URL', 'imatutu'), $i),
+            'section' => 'sec_imatutu_clients',
+            'type'    => 'url',
+        ));
+
+        $wp_customize->add_setting("client_{$i}_logo", array(
+            'default'           => '',
+            'sanitize_callback' => 'esc_url_raw',
+        ));
+        $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, "client_{$i}_logo", array(
+            'label'   => sprintf(esc_html__('Partner %d: Logo Image', 'imatutu'), $i),
+            'section' => 'sec_imatutu_clients',
+        )));
+    }
+
+    // =============================================================
+    // SECTION 7: Footer & Contact Info
+    // =============================================================
+    $wp_customize->add_section('sec_imatutu_footer', array(
+        'title'    => esc_html__('7. Footer & Contact Info', 'imatutu'),
+        'panel'    => 'panel_imatutu',
+        'priority' => 70,
+    ));
+
+    $wp_customize->add_setting('footer_address_1', array(
+        'default'           => 'Jl. Gatot Subroto Barat No.283, Pemecutan Kaja, Kec. Denpasar Utara, Kota Denpasar, Bali 80111',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('footer_address_1', array(
+        'label'   => esc_html__('Office Address 1 (Denpasar Barat)', 'imatutu'),
+        'section' => 'sec_imatutu_footer',
+        'type'    => 'textarea',
+    ));
+
+    $wp_customize->add_setting('footer_address_2', array(
+        'default'           => 'Jl. Gatot Subroto Tengah No.45F, Dauh Puri Kaja, Kec. Denpasar Utara, Kota Denpasar, Bali 80239',
+        'sanitize_callback' => 'sanitize_textarea_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('footer_address_2', array(
+        'label'   => esc_html__('Office Address 2 (Denpasar Tengah)', 'imatutu'),
+        'section' => 'sec_imatutu_footer',
+        'type'    => 'textarea',
+    ));
+
+    $wp_customize->add_setting('footer_phone', array(
+        'default'           => '+62 851 6893 2460',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('footer_phone', array(
+        'label'   => esc_html__('Phone Number', 'imatutu'),
+        'section' => 'sec_imatutu_footer',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('footer_email', array(
+        'default'           => 'office@imatutu.com',
+        'sanitize_callback' => 'sanitize_email',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('footer_email', array(
+        'label'   => esc_html__('Email Address', 'imatutu'),
+        'section' => 'sec_imatutu_footer',
+        'type'    => 'email',
+    ));
+
+    $wp_customize->add_setting('fastbots_bot_id', array(
+        'default'           => 'cm8gjb24m11rmrik59ko46vdi',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('fastbots_bot_id', array(
+        'label'       => esc_html__('Fastbots AI Chatbot ID', 'imatutu'),
+        'description' => esc_html__('Embeds floating Fastbots AI assistant on website.', 'imatutu'),
+        'section'     => 'sec_imatutu_footer',
+        'type'        => 'text',
+    ));
+
+    $wp_customize->add_setting('footer_copyright', array(
+        'default'           => '© Copyright Imatutu. All Rights Reserved.',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'postMessage',
+    ));
+    $wp_customize->add_control('footer_copyright', array(
+        'label'   => esc_html__('Copyright Notice', 'imatutu'),
+        'section' => 'sec_imatutu_footer',
+        'type'    => 'text',
+    ));
+}
+add_action('customize_register', 'imatutu_customize_register');
+
+/**
+ * Enqueue script for real-time live preview in Customizer iframe
+ */
+if (!function_exists('imatutu_customizer_live_preview')) {
+    function imatutu_customizer_live_preview() {
+        $preview_ver = file_exists(get_template_directory() . '/assets/js/customizer-preview.js')
+            ? filemtime(get_template_directory() . '/assets/js/customizer-preview.js')
+            : '2.1.0';
+
+        wp_enqueue_script(
+            'imatutu-customizer-preview',
+            get_template_directory_uri() . '/assets/js/customizer-preview.js',
+            array('customize-preview', 'jquery'),
+            $preview_ver,
+            true
+        );
+    }
+}
+add_action('customize_preview_init', 'imatutu_customizer_live_preview');
+```
+
+---
+
+### 4.5 File `build-zip.php` (Update untuk Menghasilkan ZIP Bersih)
+Pastikan `build-zip.php` mengecualikan file scratch dan gambar dokumentasi:
+
+```php
+<?php
+/**
+ * Build Script to generate production WordPress Theme ZIP archive
+ */
+
+$sourceDir = rtrim(__DIR__, '/\\');
+$excludeList = array(
+    '.git',
+    '.gitignore',
+    'issue.md',
+    'build-zip.php',
+    'scratch',
+    'imatutu-theme.zip',
+    'imatutu.zip',
+    'imatutu-flat.zip',
+);
+
+function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = 'imatutu-theme/') {
+    if (file_exists($zipFilename)) {
+        unlink($zipFilename);
+    }
+
+    $zip = new ZipArchive();
+    if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        die("Error: Cannot create zip file: {$zipFilename}\n");
+    }
+
+    if (!empty($prefix)) {
+        $zip->addEmptyDir(rtrim($prefix, '/'));
+    }
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+
+    $count = 0;
+    foreach ($iterator as $item) {
+        $realPath = $item->getPathname();
+        $subPath = substr($realPath, strlen($sourceDir));
+        $cleanPath = ltrim(str_replace('\\', '/', $subPath), '/');
+
+        if (substr($cleanPath, -4) === '.zip') {
+            continue;
+        }
+
+        $skip = false;
+        foreach ($excludeList as $ex) {
+            if ($cleanPath === $ex || strpos($cleanPath, $ex . '/') === 0) {
+                $skip = true;
+                break;
+            }
+        }
+        if ($skip) {
+            continue;
+        }
+
+        $zipPath = empty($prefix) ? $cleanPath : rtrim($prefix, '/') . '/' . $cleanPath;
+
+        if ($item->isDir()) {
+            $zip->addEmptyDir($zipPath);
+        } elseif ($item->isFile()) {
+            $zip->addFile($realPath, $zipPath);
+            $count++;
+        }
+    }
+
+    $zip->close();
+    echo "SUCCESS: {$count} files added to " . basename($zipFilename) . " (" . round(filesize($zipFilename)/1024, 2) . " KB)\n";
+}
+
+packageThemeZip(__DIR__ . '/imatutu-theme.zip', $sourceDir, $excludeList, 'imatutu-theme/');
+```
+
+---
+
+## 5. TAHAPAN EKSEKUSI KERJA (STEP-BY-STEP)
+
+Bagi programmer pelaksana atau model AI, jalankan tahapan ini secara berurutan:
+
+1. **Langkah 1: Hapus File Builder & Script Watchdog**
+   - Hapus `inc/customizer-layout-engine.php`
+   - Hapus `assets/js/customizer-controls.js`
+   - Hapus `assets/css/customizer-controls.css`
+   - Hapus folder `template-parts/builder/`
+2. **Langkah 2: Terapkan Kode Baru**
+   - Timpa `inc/customizer.php` dengan kode pada subbab 4.4.
+   - Timpa `functions.php` dengan kode pada subbab 4.3.
+   - Timpa `front-page.php` dengan kode pada subbab 4.2.
+   - Timpa `build-zip.php` dengan kode pada subbab 4.5.
+3. **Langkah 3: Validasi Sintaks PHP Lokal**
+   Jalankan perintah berikut di terminal untuk memastikan tidak ada kesalahan ketik:
+   ```bash
+   php -l inc/customizer.php
+   php -l functions.php
+   php -l front-page.php
+   ```
+4. **Langkah 4: Jalankan Build ZIP**
+   ```bash
+   php build-zip.php
+   ```
+   Pastikan file `imatutu-theme.zip` terbuat dengan sukses (~100–150 KB).
+5. **Langkah 5: Upload & Aktivasi di WordPress**
+   - Buka **WP Admin > Appearance > Themes**.
+   - Klik **Add New Theme > Upload Theme**.
+   - Pilih `imatutu-theme.zip` lalu klik **Install Now** > **Replace active with uploaded**.
+   - Pastikan tema aktif adalah **Imatutu Modern Corporate**.
+6. **Langkah 6: Verifikasi Customizer**
+   - Buka **Appearance > Customize**.
+   - Buka panel **Imatutu Theme Settings**.
+   - Uji coba mengganti teks judul Hero atau warna: pastikan perubahan muncul di layar pratinjau seketika tanpa error blank!
