@@ -14,10 +14,10 @@ if (!defined('ABSPATH')) {
 $footer_tagline   = get_theme_mod('footer_tagline', 'Integrated Solutions for All Your Business Needs');
 $footer_address_1 = get_theme_mod('footer_address_1', 'Jl. Gatot Subroto Barat No.283, Pemecutan Kaja, Kec. Denpasar Utara, Kota Denpasar, Bali 80111');
 $footer_address_2 = get_theme_mod('footer_address_2', 'Jl. Gatot Subroto Tengah No.45F, Dauh Puri Kaja, Kec. Denpasar Utara, Kota Denpasar, Bali 80239');
-$footer_phone     = get_theme_mod('footer_phone', '+62 851 6893 2460');
-$footer_email     = get_theme_mod('footer_email', 'office@imatutu.com');
+$footer_phone     = get_theme_mod('imatutu_phone', get_theme_mod('footer_phone', '+62 851 6893 2460'));
+$footer_email     = get_theme_mod('imatutu_email', get_theme_mod('footer_email', 'office@imatutu.com'));
 $footer_copyright = get_theme_mod('footer_copyright', '© Copyright Imatutu. All Rights Reserved.');
-$fastbots_bot_id  = get_theme_mod('fastbots_bot_id', 'cm8gjb24m11rmrik59ko46vdi');
+$fastbots_bot_id  = get_theme_mod('imatutu_chatbot_id', get_theme_mod('fastbots_bot_id', 'cm8gjb24m11rmrik59ko46vdi'));
 ?>
 
     <footer id="colophon" class="site-footer">
@@ -112,7 +112,7 @@ $fastbots_bot_id  = get_theme_mod('fastbots_bot_id', 'cm8gjb24m11rmrik59ko46vdi'
 </div><!-- #page -->
 
 <!-- Fastbots AI Chatbot Integration -->
-<?php if (!empty($fastbots_bot_id)) : ?>
+<?php if (!empty($fastbots_bot_id) && !wp_script_is('fastbots-chatbot', 'enqueued') && !wp_script_is('fastbots-chatbot', 'done')) : ?>
     <script id="fastbots-chatbot-js" defer data-bot-id="<?php echo esc_attr($fastbots_bot_id); ?>" src="https://app.fastbots.ai/embed.js"></script>
 <?php endif; ?>
 

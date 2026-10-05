@@ -1,0 +1,31 @@
+/**
+ * Gutenberg Editor Styles for Imatutu Corporate Theme
+ * Ensures visual parity between Block Editor and Frontend
+ */
+
+.editor-styles-wrapper {
+    background-color: var(--color-bg, #FFFFFF);
+    color: var(--color-text, #1E293B);
+    font-family: var(--font-main, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+}
+
+.editor-styles-wrapper .site-container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.editor-styles-wrapper .hero-section {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.editor-styles-wrapper .services-grid,
+.editor-styles-wrapper .stats-counters-grid,
+.editor-styles-wrapper .clients-grid {
+    box-sizing: border-box;
+}
