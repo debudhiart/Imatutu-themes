@@ -22,21 +22,15 @@
     }
 
     api.bind('preview-ready', function() {
-        console.log('%c[Imatutu Preview]%c Live preview listener initialized.', 'color: #1559ED; font-weight: bold;', 'color: inherit;');
+        console.log('%c[Imatutu Preview]%c Lean dedicated customizer live preview initialized.', 'color: #1559ED; font-weight: bold;', 'color: inherit;');
 
         // =============================================================
         // 1. Color Palette & Dynamic CSS Variables
         // =============================================================
         var colorMap = {
             'primary_color': '--color-primary',
-            'color_primary_hover': '--color-primary-dark',
             'secondary_color': '--color-secondary',
-            'accent_color': '--color-accent',
-            'color_bg_main': '--color-bg',
-            'color_bg_surface': '--color-bg-secondary',
-            'color_text_main': '--color-text',
-            'color_text_muted': '--color-text-muted',
-            'color_border': '--color-border'
+            'accent_color': '--color-accent'
         };
 
         $.each(colorMap, function(settingId, cssVar) {
@@ -50,7 +44,7 @@
         });
 
         // =============================================================
-        // 2. Header & Branding Settings
+        // 2. Header & Navigation Settings
         // =============================================================
         api('header_brand_text', function(value) {
             value.bind(function(newval) {
@@ -66,7 +60,7 @@
 
         api('header_cta_text', function(value) {
             value.bind(function(newval) {
-                $('.btn-header span').text(newval || '');
+                $('.btn-header span, .mobile-drawer-footer .btn-primary').text(newval || '');
             });
         });
 
@@ -112,6 +106,19 @@
             });
         });
 
+        [1, 2, 3].forEach(function(i) {
+            api('service_' + i + '_title', function(value) {
+                value.bind(function(newval) {
+                    $('.service-title-' + i).text(newval || '');
+                });
+            });
+            api('service_' + i + '_desc', function(value) {
+                value.bind(function(newval) {
+                    $('.service-desc-' + i).text(newval || '');
+                });
+            });
+        });
+
         // =============================================================
         // 5. Global Reach & Stats Section
         // =============================================================
@@ -138,11 +145,6 @@
                     $('.stat-lbl-' + i).text(newval || '');
                 });
             });
-            api('stat_' + i + '_desc', function(value) {
-                value.bind(function(newval) {
-                    $('.stat-desc-' + i).text(newval || '');
-                });
-            });
         });
 
         // =============================================================
@@ -155,11 +157,35 @@
         });
 
         // =============================================================
-        // 7. Footer
+        // 7. Footer & Contact Info
         // =============================================================
         api('footer_tagline', function(value) {
             value.bind(function(newval) {
                 $('.footer-brand-tagline').text(newval || '');
+            });
+        });
+
+        api('footer_address_1', function(value) {
+            value.bind(function(newval) {
+                $('.footer-address-1').html(safeNl2br(newval));
+            });
+        });
+
+        api('footer_address_2', function(value) {
+            value.bind(function(newval) {
+                $('.footer-address-2').html(safeNl2br(newval));
+            });
+        });
+
+        api('footer_phone', function(value) {
+            value.bind(function(newval) {
+                $('.footer-phone-text, .header-phone-text').text(newval || '');
+            });
+        });
+
+        api('footer_email', function(value) {
+            value.bind(function(newval) {
+                $('.footer-email-text, .header-email-text').text(newval || '');
             });
         });
 

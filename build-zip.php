@@ -1,12 +1,6 @@
 <?php
 /**
- * Build Script to generate standard WordPress Theme ZIP archive(s)
- * 
- * Generates two packages:
- * 1. imatutu-theme.zip (Flat/Root structure - recommended for WP Admin Dashboard upload)
- *    Eliminates the "The theme is missing the style.css stylesheet" error caused by
- *    WP Upgrader failing single-subdirectory detection on certain hosting environments.
- * 2. imatutu-theme-folder.zip (Enclosed folder structure - for manual FTP/cPanel extraction)
+ * Build Script to generate production WordPress Theme ZIP archive
  */
 
 $sourceDir = rtrim(__DIR__, '/\\');
@@ -16,15 +10,15 @@ $excludeList = array(
     'issue.md',
     'build-zip.php',
     'scratch',
-    'scratch-customize.php',
-    'test-controls-json.php',
-    'test-customizer.php',
-    'test-missing-settings.php',
-    'test-real-wp-controls.php',
-    'test-settings-json.php',
+    'imatutu-theme.zip',
+    'imatutu.zip',
+    'imatutu-flat.zip',
+    'assets/images/customizer-ui-mockup.jpg',
+    'assets/images/website-redesign-preview.jpg',
+    'assets/images/before-after-comparison.jpg',
 );
 
-function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = '') {
+function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = 'imatutu-theme/') {
     if (file_exists($zipFilename)) {
         unlink($zipFilename);
     }
@@ -49,12 +43,10 @@ function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = '') {
         $subPath = substr($realPath, strlen($sourceDir));
         $cleanPath = ltrim(str_replace('\\', '/', $subPath), '/');
 
-        // Check if file is a zip archive
         if (substr($cleanPath, -4) === '.zip') {
             continue;
         }
 
-        // Check exclusion
         $skip = false;
         foreach ($excludeList as $ex) {
             if ($cleanPath === $ex || strpos($cleanPath, $ex . '/') === 0) {
@@ -77,7 +69,7 @@ function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = '') {
     }
 
     $zip->close();
-    echo "SUCCESS: {$count} files added to " . basename($zipFilename) . "\n";
+    echo "SUCCESS: {$count} files added to " . basename($zipFilename) . " (" . round(filesize($zipFilename) / 1024, 2) . " KB)\n";
 }
 
 // 1. Standard WordPress Theme Package (Slug: imatutu-theme)
@@ -88,4 +80,3 @@ packageThemeZip(__DIR__ . '/imatutu.zip', $sourceDir, $excludeList, 'imatutu/');
 
 // 3. Flat root package (Direct files at root)
 packageThemeZip(__DIR__ . '/imatutu-flat.zip', $sourceDir, $excludeList, '');
-

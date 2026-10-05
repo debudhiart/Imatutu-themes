@@ -6,36 +6,17 @@
  */
 
 if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
+    exit;
 }
-
-// Boost PHP resources specifically for WP Customizer (which serializes many controls to JSON).
-// Hosting limit: memory_limit=128M, max_execution_time=30s. We push it higher for admin pages.
-if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
-    @ini_set('memory_limit', '256M');
-    @ini_set('max_execution_time', 120);
-}
-
 
 if (!function_exists('imatutu_setup')) :
-    /**
-     * Sets up theme defaults and registers support for various WordPress features.
-     */
     function imatutu_setup() {
-        // Make theme available for translation.
         load_theme_textdomain('imatutu', get_template_directory() . '/languages');
-
-        // Add default posts and comments RSS feed links to head.
         add_theme_support('automatic-feed-links');
-
-        // Let WordPress manage the document title.
         add_theme_support('title-tag');
-
-        // Enable support for Post Thumbnails on posts and pages.
         add_theme_support('post-thumbnails');
         set_post_thumbnail_size(1200, 630, true);
 
-        // Custom Logo support
         add_theme_support('custom-logo', array(
             'height'      => 80,
             'width'       => 260,
@@ -44,13 +25,11 @@ if (!function_exists('imatutu_setup')) :
             'unlink-homepage-logo' => false,
         ));
 
-        // Register Navigation Menus
         register_nav_menus(array(
             'primary' => esc_html__('Primary Navigation', 'imatutu'),
             'footer'  => esc_html__('Footer Navigation', 'imatutu'),
         ));
 
-        // Switch default core markup for search form, comment form, etc to HTML5.
         add_theme_support('html5', array(
             'search-form',
             'comment-form',
@@ -61,10 +40,7 @@ if (!function_exists('imatutu_setup')) :
             'script',
         ));
 
-        // Add theme support for selective refresh for widgets.
         add_theme_support('customize-selective-refresh-widgets');
-
-        // Add responsive embeds support.
         add_theme_support('responsive-embeds');
     }
 endif;
@@ -94,21 +70,13 @@ if (!function_exists('imatutu_scripts')) {
         );
 
         // Main Theme CSS
-        $css_version = file_exists(get_template_directory() . '/assets/css/main.css') 
+        $css_ver = file_exists(get_template_directory() . '/assets/css/main.css') 
             ? filemtime(get_template_directory() . '/assets/css/main.css') 
-            : '2.0.0';
-        wp_enqueue_style('imatutu-main', get_template_directory_uri() . '/assets/css/main.css', array('imatutu-google-fonts'), $css_version);
+            : '2.1.0';
+        wp_enqueue_style('imatutu-main', get_template_directory_uri() . '/assets/css/main.css', array('imatutu-google-fonts'), $css_ver);
+        wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main'), '2.1.0');
 
-        // Builder CSS
-        $builder_css_version = file_exists(get_template_directory() . '/assets/css/builder.css')
-            ? filemtime(get_template_directory() . '/assets/css/builder.css')
-            : '2.0.0';
-        wp_enqueue_style('imatutu-builder', get_template_directory_uri() . '/assets/css/builder.css', array('imatutu-main'), $builder_css_version);
-
-        // style.css for metadata and child theme compatibility
-        wp_enqueue_style('imatutu-style', get_stylesheet_uri(), array('imatutu-main', 'imatutu-builder'), '2.0.1');
-
-        // Dynamic customizer styling (Colors & Typography)
+        // Dynamic Customizer Styling (Colors & Typography)
         $custom_css = '';
         if (function_exists('imatutu_get_color_css')) {
             $custom_css .= imatutu_get_color_css();
@@ -120,17 +88,11 @@ if (!function_exists('imatutu_scripts')) {
             wp_add_inline_style('imatutu-main', $custom_css);
         }
 
-        // Main Theme JavaScript
-        $js_version = file_exists(get_template_directory() . '/assets/js/main.js') 
+        // Main Theme JavaScript (Vanilla JS for sticky header & mobile menu)
+        $js_ver = file_exists(get_template_directory() . '/assets/js/main.js') 
             ? filemtime(get_template_directory() . '/assets/js/main.js') 
-            : '2.0.0';
-        wp_enqueue_script('imatutu-script', get_template_directory_uri() . '/assets/js/main.js', array(), $js_version, true);
-
-        // Builder Frontend JavaScript
-        $builder_js_version = file_exists(get_template_directory() . '/assets/js/builder-frontend.js')
-            ? filemtime(get_template_directory() . '/assets/js/builder-frontend.js')
-            : '2.0.0';
-        wp_enqueue_script('imatutu-builder-js', get_template_directory_uri() . '/assets/js/builder-frontend.js', array(), $builder_js_version, true);
+            : '2.1.0';
+        wp_enqueue_script('imatutu-script', get_template_directory_uri() . '/assets/js/main.js', array(), $js_ver, true);
 
         if (is_singular() && comments_open() && get_option('thread_comments')) {
             wp_enqueue_script('comment-reply');
@@ -185,6 +147,6 @@ if (!function_exists('imatutu_default_footer_menu')) {
 }
 
 /**
- * Customizer Additions
+ * Include Customizer
  */
 require_once get_template_directory() . '/inc/customizer.php';
