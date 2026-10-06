@@ -1,91 +1,91 @@
 <?php
 /**
- * Build Script to generate standard WordPress Theme ZIP archive(s)
- * 
- * Generates two packages:
- * 1. imatutu-theme.zip (Flat/Root structure - recommended for WP Admin Dashboard upload)
- *    Eliminates the "The theme is missing the style.css stylesheet" error caused by
- *    WP Upgrader failing single-subdirectory detection on certain hosting environments.
- * 2. imatutu-theme-folder.zip (Enclosed folder structure - for manual FTP/cPanel extraction)
+ * Theme ZIP Packaging Script (Hybrid Edition)
+ * Excludes git files, markdown documents, and development artifacts.
  */
 
-$sourceDir = rtrim(__DIR__, '/\\');
+$sourceDir   = rtrim(__DIR__, '/\\');
+
 $excludeList = array(
     '.git',
     '.gitignore',
-    'issue.md',
-    'build-zip.php',
+    '.github',
+    'node_modules',
     'scratch',
-    'scratch-customize.php',
-    'test-controls-json.php',
-    'test-customizer.php',
-    'test-missing-settings.php',
-    'test-real-wp-controls.php',
-    'test-settings-json.php',
+    'build-zip.php',
+    'imatutu-theme.zip',
+    'imatutu.zip',
+    'imatutu-flat.zip',
+    'issue.md',
+    'README.md',
+    '.DS_Store',
+    'Thumbs.db',
+    'assets/images/customizer-ui-mockup.jpg',
+    'assets/images/website-redesign-preview.jpg',
+    'assets/images/before-after-comparison.jpg',
 );
 
-function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = '') {
+function packageThemeZip($zipFilename, $sourceDir, $excludeList, $prefix = 'imatutu-theme/') {
     if (file_exists($zipFilename)) {
         unlink($zipFilename);
     }
 
     $zip = new ZipArchive();
     if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-        die("Error: Cannot create zip file: {$zipFilename}\n");
+        die("ERROR: Cannot create {$zipFilename}\n");
     }
 
     if (!empty($prefix)) {
         $zip->addEmptyDir(rtrim($prefix, '/'));
     }
 
-    $iterator = new RecursiveIteratorIterator(
+    $files = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS),
         RecursiveIteratorIterator::SELF_FIRST
     );
 
     $count = 0;
-    foreach ($iterator as $item) {
-        $realPath = $item->getPathname();
-        $subPath = substr($realPath, strlen($sourceDir));
-        $cleanPath = ltrim(str_replace('\\', '/', $subPath), '/');
+    foreach ($files as $file) {
+        $realPath     = $file->getRealPath();
+        $relativePath = substr($realPath, strlen($sourceDir) + 1);
+        $normalized   = str_replace('\\', '/', $relativePath);
 
-        // Check if file is a zip archive
-        if (substr($cleanPath, -4) === '.zip') {
+        if (substr($normalized, -4) === '.zip') {
             continue;
         }
 
-        // Check exclusion
         $skip = false;
-        foreach ($excludeList as $ex) {
-            if ($cleanPath === $ex || strpos($cleanPath, $ex . '/') === 0) {
+        foreach ($excludeList as $exclude) {
+            if ($normalized === $exclude || strpos($normalized, $exclude . '/') === 0) {
                 $skip = true;
                 break;
             }
         }
+
         if ($skip) {
             continue;
         }
 
-        $zipPath = empty($prefix) ? $cleanPath : rtrim($prefix, '/') . '/' . $cleanPath;
+        $zipPath = empty($prefix) ? $normalized : rtrim($prefix, '/') . '/' . $normalized;
 
-        if ($item->isDir()) {
+        if ($file->isDir()) {
             $zip->addEmptyDir($zipPath);
-        } elseif ($item->isFile()) {
+        } else {
             $zip->addFile($realPath, $zipPath);
             $count++;
         }
     }
 
     $zip->close();
-    echo "SUCCESS: {$count} files added to " . basename($zipFilename) . "\n";
+    $size = round(filesize($zipFilename) / 1024, 2);
+    echo "SUCCESS: Created " . basename($zipFilename) . " with {$count} files ({$size} KB)\n";
 }
 
-// 1. Standard WordPress Theme Package (Slug: imatutu-theme)
+// 1. Standard WordPress Theme Package (imatutu-theme/)
 packageThemeZip(__DIR__ . '/imatutu-theme.zip', $sourceDir, $excludeList, 'imatutu-theme/');
 
-// 2. Standard WordPress Theme Package (Slug: imatutu)
+// 2. Standard WordPress Theme Package (imatutu/)
 packageThemeZip(__DIR__ . '/imatutu.zip', $sourceDir, $excludeList, 'imatutu/');
 
-// 3. Flat root package (Direct files at root)
+// 3. Flat root package
 packageThemeZip(__DIR__ . '/imatutu-flat.zip', $sourceDir, $excludeList, '');
-

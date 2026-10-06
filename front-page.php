@@ -1,10 +1,13 @@
 <?php
 /**
- * The front page template file
+ * The Front Page Template (Hybrid Implementation)
  *
- * Serves as the orchestrator for the homepage components.
+ * Checks if the front page has content authored in WordPress Gutenberg editor.
+ * If content exists, it renders the_content() seamlessly.
+ * If empty, it renders default fallback components so the site is never blank.
  *
  * @package Imatutu
+ * @version 2.2.0
  */
 
 if (!defined('ABSPATH')) {
@@ -14,21 +17,31 @@ if (!defined('ABSPATH')) {
 get_header();
 ?>
 
-<main id="primary" class="site-main">
+<main id="primary" class="site-main front-page-hybrid">
     <?php
-    get_template_part('template-parts/home/section', 'hero');
-    get_template_part('template-parts/home/section', 'services');
+    if (have_posts()) :
+        while (have_posts()) :
+            the_post();
+            $page_content = trim(get_the_content());
 
-    // Render Dynamic Modular Builder Sections from Customizer
-    for ($i = 1; $i <= 5; $i++) {
-        if (get_theme_mod("builder_sec_{$i}_enable", ($i <= 2))) {
-            set_query_var('section_index', $i);
-            get_template_part('template-parts/builder/section', 'wrapper');
-        }
-    }
-
-    get_template_part('template-parts/home/section', 'stats');
-    get_template_part('template-parts/home/section', 'clients');
+            if (!empty($page_content)) :
+                // Render visual block patterns authored in WordPress Page Editor
+                the_content();
+            else :
+                // Default Fallback: Renders original corporate sections
+                get_template_part('template-parts/home/section', 'hero');
+                get_template_part('template-parts/home/section', 'services');
+                get_template_part('template-parts/home/section', 'stats');
+                get_template_part('template-parts/home/section', 'clients');
+            endif;
+        endwhile;
+    else :
+        // Secondary fallback
+        get_template_part('template-parts/home/section', 'hero');
+        get_template_part('template-parts/home/section', 'services');
+        get_template_part('template-parts/home/section', 'stats');
+        get_template_part('template-parts/home/section', 'clients');
+    endif;
     ?>
 </main>
 

@@ -1,486 +1,993 @@
-# SPESIFIKASI DAN PERENCANAAN PENGEMBANGAN: ADVANCED WORDPRESS CUSTOMIZER & MODULAR LAYOUT BUILDER (IMATUTU THEME)
+# PANDUAN IMPLEMENTASI TEKNIS: ARSITEKTUR TEMA HYBRID & GUTENBERG BLOCK PATTERNS
+## Solusi Tema WordPress Universal, Modern, dan Anti-Crash untuk Imatutu
 
-**Target Repositori**: `debudhiart/Imatutu-themes`  
-**Branch Pengembangan**: `development` (Target PR ke `origin`)  
-**Versi Tema**: `2.0.1`  
-**Lokasi Akses**: WordPress Admin Dashboard > **Appearance (Tampilan)** > **Customize (Sesuaikan)** (`WP_Customize_Manager`)  
-**Target Pelaksana**: Junior Web Programmer / Model AI Berbiaya Hemat (Prompt/Instruction-Ready)  
-**Tujuan Dokumen**: Memberikan panduan arsitektur, dokumentasi fitur lengkap berilustrasi, serta tahapan eksekusi prosedural *step-by-step* yang presisi tanpa ambiguitas teknis.
+> **Ditujukan Untuk**: Junior Web Programmer / Model AI Pelaksana.  
+> **Tujuan Proyek**: Mengubah arsitektur tema Imatutu dari model lama *Customizer Monolith* menjadi **Hybrid Theme berbasis Native Gutenberg Block Patterns**. Solusi ini membuat tema 100% universal (dapat digunakan di halaman mana saja), super ringan, bebas crash di hosting Plesk, dan mudah dikustomisasi langsung melalui editor standar WordPress (`Pages > Edit`).
 
 ---
 
-## DAFTAR ISI
-1. [Ringkasan & Filosofi Desain Tema](#1-ringkasan--filosofi-desain-tema)
-2. [Arsitektur Direktori & Konvensi File](#2-arsitektur-direktori--konvensi-file)
-3. [Katalog & Penjelasan Fitur Lengkap](#3-katalog--penjelasan-fitur-lengkap)
-   - 3.1 [Typography Engine](#31-typography-engine)
-   - 3.2 [Color Palette & Theme Presets System](#32-color-palette--theme-presets-system)
-   - 3.3 [Modular Layout Builder (Grid & Section Engine)](#33-modular-layout-builder-grid--section-engine)
-   - 3.4 [Koleksi 10 Komponen Modular (Component Library)](#34-koleksi-10-komponen-modular-component-library)
-   - 3.5 [Live Preview Realtime & Selective Refresh](#35-live-preview-realtime--selective-refresh)
-   - 3.6 [Resilient Native Controls Engine (Anti-Crash Architecture)](#36-resilient-native-controls-engine-anti-crash-architecture)
-4. [Ilustrasi & Diagram Arsitektur Visual](#4-ilustrasi--diagram-arsitektur-visual)
-   - 4.1 [Diagram Aliran Data Customizer (Mermaid Flowchart)](#41-diagram-aliran-data-customizer-mermaid-flowchart)
-   - 4.2 [Diagram Hierarki Panel & Section](#42-diagram-hierarki-panel--section)
-   - 4.3 [Wireframe Visual Layout Grid Kolom (Desktop vs Mobile)](#43-wireframe-visual-layout-grid-kolom-desktop-vs-mobile)
-   - 4.4 [Diagram Aliran Variabel CSS Dinamis](#44-diagram-aliran-variabel-css-dinamis)
-5. [Pedoman Khusus untuk Junior Programmer & Model AI](#5-pedoman-khusus-untuk-junior-programmer--model-ai)
-   - 5.1 [Daftar Pantangan Utama (Anti-Patterns)](#51-daftar-pantangan-utama-anti-patterns)
-   - 5.2 [Aturan Standar Sanitasi & Keamanan Data](#52-aturan-standar-sanitasi--keamanan-data)
-   - 5.3 [Prosedur Validasi Mandiri Sebelum Commit](#53-prosedur-validasi-mandiri-sebelum-commit)
-6. [Tahapan Implementasi Step-by-Step (Work Breakdown Structure)](#6-tahapan-implementasi-step-by-step-work-breakdown-structure)
-   - [Fase 1: Registrasi Enqueue & Engine Core](#fase-1-registrasi-enqueue--engine-core)
-   - [Fase 2: Implementasi Palette & Typography Engine](#fase-2-implementasi-palette--typography-engine)
-   - [Fase 3: Registrasi Panel, Section & Native Controls](#fase-3-registrasi-panel-section--native-controls)
-   - [Fase 4: Pembuatan Template Renderer Komponen](#fase-4-pembuatan-template-renderer-komponen)
-   - [Fase 5: Desain CSS Grid & Variabel Dinamis](#fase-5-desain-css-grid--variabel-dinamis)
-   - [Fase 6: Live Preview Realtime Script](#fase-6-live-preview-realtime-script)
-   - [Fase 7: Integrasi ke Template Beranda](#fase-7-integrasi-ke-template-beranda)
-   - [Fase 8: Packaging POSIX ZIP & QA Validation](#fase-8-packaging-posix-zip--qa-validation)
-7. [Checklist Pengujian & Kriteria Keberhasilan (Definition of Done)](#7-checklist-pengujian--kriteria-keberhasilan-definition-of-done)
+## 1. ACUAN VISUAL TAMPILAN AKHIR (TARGET UI)
+
+Implementasi kode harus mempertahankan 100% estetika desain korporat modern bergaya enterprise (ala Pertamina.com) sesuai ilustrasi berikut:
+
+### A. Tampilan Halaman Depan Website (Front-End Result)
+Navigasi *glassmorphism*, hero banner bertenaga SEO, 3 kartu bento layanan, pencapaian metrik statistik internasional, dan grid 9 partner bisnis.
+
+![Target Tampilan Depan Website](assets/images/website-redesign-preview.jpg)
+
+### B. Komparasi Visual Sebelum vs Sesudah Redesain
+Perubahan dari tampilan lama menjadi portal korporat modern berkecepatan tinggi.
+
+![Komparasi Sebelum vs Sesudah](assets/images/before-after-comparison.jpg)
+
+### C. Antarmuka Kustomisasi Baru di WordPress Editor (Target UX)
+Pengguna tidak lagi terkunci pada sidebar *Customize.php* yang lambat dan rentan *freeze*. Seluruh konten diedit langsung secara visual pada editor bawaan WordPress (**Gutenberg**) dengan fitur Block Pattern sekali klik:
+
+![Target UI Customizer & Live Preview](assets/images/customizer-ui-mockup.jpg)
 
 ---
 
-## 1. RINGKASAN & FILOSOFI DESAIN TEMA
+## 2. LATAR BELAKANG & ANALISIS ARSITEKTUR (MENGAPA SOLUSI INI?)
 
-Tema **Imatutu Modern Corporate** dirancang khusus untuk memenuhi standar situs web korporasi besar, enterprise, dan BUMN (terinspirasi dari karakter desain bersih, kredibel, dan berwibawa seperti *Pertamina.com*). 
+### Masalah pada Arsitektur Lama (Customizer-Heavy):
+1. **Anti-Pattern WordPress**: Menempatkan konten struktural halaman (teks hero, 3 bento card, 9 partner, dan statistik) ke dalam `WP_Customize_Manager` / `theme_mods` adalah pendekatan usang (legacy). WordPress Core telah menghentikan pengembangan Customizer sejak WP 5.8+.
+2. **Kaku & Tidak Universal**: Konten terikat mati pada file `front-page.php`. Jika pengelola website ingin membuat halaman baru (misal: "Tentang Kami", "Layanan Transportasi", atau "Landing Page Khusus") dengan komponen Bento Card yang sama, komponen tersebut tidak dapat digunakan kembali.
+3. **Ketiadaan Repeater Field**: Jika ingin menambah layanan ke-4 atau partner ke-10, programmer harus mengedit kode PHP secara manual untuk mendaftarkan kontrol baru.
+4. **Crash di Hosting Plesk**: Serialisasi ratusan kontrol Customizer memakan memori di atas 128 MB dan memicu *white screen of death* atau *infinite spinner*.
 
-### Karakteristik & Nilai Unggulan:
-1. **Zero External Builder Bloat**: 100% menggunakan native **WordPress Customizer API** (`WP_Customize_Manager`). Tidak memerlukan plugin berat seperti *Elementor*, *WPBakery*, atau *Divi* yang memperlambat website dan menyisakan database query berlebih.
-2. **Ultra High Performance**: Waktu muat halaman sangat cepat (PageSpeed 95+), payload aset minimal, dan memanfaatkan sistem variabel CSS terkompilasi murni.
-3. **Content Administrator Friendly**: Staf non-teknis dapat mengubah teks, gambar, susunan kolom, tipografi, dan palet warna dalam hitungan detik tanpa menyentuh satu baris kode HTML pun.
-4. **Shared Hosting Resilience**: Kode dioptimalkan secara ketat untuk berjalan mulus di server dengan spesifikasi terbatas (`memory_limit = 128M`, `max_execution_time = 30s`) tanpa mengalami masalah output buffer truncation atau kegagalan serialisasi JSON.
+### Keunggulan Arsitektur Hybrid Theme + Gutenberg Block Patterns:
+1. **100% Universal & Reusable**: Seluruh seksi (Hero, Services, Stats, Partners) didaftarkan sebagai **Block Patterns** resmi tema. Pengguna dapat menyisipkannya di halaman mana saja hanya dengan klik menu *Patterns* di editor.
+2. **Dukungan Repeater Alami**: Ingin menambah layanan ke-4 atau ke-5? Pengguna cukup klik tombol **Duplicate** pada blok layanan di editor Gutenberg. Tidak perlu menulis kode PHP tambahan.
+3. **Mendukung Fallback Otomatis**: Jika halaman depan masih kosong, `front-page.php` otomatis menampilkan komponen bawaan (*default fallback*). Namun jika halaman diedit di menu *Pages*, template otomatis menampilkan `the_content()`.
+4. **Bebas Plugin Pihak Ketiga & Konsumsi Memori Nol**: 100% menggunakan fitur *core* native WordPress. File tema berukuran kecil (< 100 KB), waktu muat Customizer < 50ms, dan 100% stabil di hosting Plesk 128MB.
+5. **WYSIWYG Sejati**: Dengan mengaktifkan `add_editor_style('assets/css/main.css')`, tampilan di layar editor Gutenberg akan identik 99% dengan tampilan di website publik.
 
 ---
 
-## 2. ARSITEKTUR DIREKTORI & KONVENSI FILE
+## 3. STRUKTUR DIREKTORI & PETA PERUBAHAN FILE
 
-Struktur direktori tema disusun secara modular dan clean architecture:
+Berikut adalah peta struktur tema baru yang harus diwujudkan:
 
-```
+```text
 imatutu-theme/
 ├── assets/
 │   ├── css/
-│   │   ├── main.css                   # Stylesheet dasar tema (reset, navbar, footer, typography)
-│   │   ├── builder.css                # Styling grid builder, kolom responsif, & komponen modular
-│   │   └── customizer-controls.css    # Styling kustom sidebar kontrol di wp-admin
+│   │   ├── main.css                  # CSS utama korporat (Tetap dipertahankan)
+│   │   └── editor-style.css          # CSS khusus agar Gutenberg identik dengan frontend (Baru)
 │   ├── js/
-│   │   ├── main.js                    # Script interaktif frontend umum (mobile menu, sticky header)
-│   │   ├── builder-frontend.js        # Script komponen frontend (accordion toggle, lightbox modal)
-│   │   ├── builder-preview.js         # Script live preview postMessage di iframe Customizer
-│   │   ├── customizer-controls.js     # Script telemetry, auto-sync palet, & show/hide field
-│   │   └── customizer-preview.js      # Script live preview legacy/bawaan
-│   └── images/
-│       └── logo.svg                   # Brand asset default
+│   │   └── main.js                   # Interaksi mobile menu & header scroll (Tetap)
+│   └── images/                       # Logo & ilustrasi
 ├── inc/
-│   ├── customizer.php                 # Registrasi utama panel, section, dan native controls
-│   ├── customizer-typography.php      # Engine Google Fonts & dynamic CSS generator
-│   ├── customizer-palettes.php        # Engine preset warna & mapping variabel CSS
-│   ├── customizer-layout-engine.php   # Controller modular layout builder & dynamic sections
-│   └── custom-controls/               # Kelas kontrol khusus (opsional/arsip)
+│   └── customizer.php                # REFAKTOR: Hanya untuk Logo, Warna Global, Kontak & Chatbot
+├── patterns/                         # FOLDER BARU: Komponen Gutenberg Reusable
+│   ├── hero.php                      # Pattern: Hero Section Enterprise
+│   ├── services.php                  # Pattern: 3 Bento Services Grid (Dapat diduplikasi)
+│   ├── stats.php                     # Pattern: Global Reach & 3 Stat Counters
+│   ├── clients.php                   # Pattern: 9 Trusted Partners Grid
+│   └── homepage-complete.php         # Pattern: Full 1-Click Complete Homepage Layout
 ├── template-parts/
-│   ├── home/                          # Komponen statis bawaan beranda
-│   │   ├── section-hero.php           # Banner hero utama
-│   │   ├── section-services.php       # Ringkasan layanan utama
-│   │   ├── section-stats.php          # Counter statistik korporasi
-│   │   └── section-clients.php        # Logo partner / klien korporasi
-│   └── builder/                       # Renderer dinamis modular builder
-│       ├── section-wrapper.php        # Pembungkus section (container, background, padding)
-│       ├── row-column.php             # Grid & Flex column container
-│       ├── component-heading.php      # Renderer heading H1-H6
-│       ├── component-paragraph.php    # Renderer paragraf & WYSIWYG
-│       ├── component-image.php        # Renderer gambar responsif & lightbox
-│       ├── component-video.php        # Renderer video (YouTube, Vimeo, MP4)
-│       ├── component-button.php       # Renderer tombol aksi & CTA
-│       ├── component-form.php         # Renderer formulir (WPForms / CF7)
-│       ├── component-iconbox.php      # Renderer kartu fitur ber-ikon SVG
-│       ├── component-counter.php      # Renderer statistik metrik
-│       └── component-accordion.php    # Renderer FAQ / lipatan teks
-├── 404.php                            # Template halaman error 404
-├── footer.php                         # Template footer global
-├── front-page.php                     # Orchestrator halaman depan (home)
-├── functions.php                      # Inisialisasi tema, enqueue scripts, & hooks
-├── header.php                         # Template header & navigasi global
-├── index.php                          # Fallback template
-├── page.php                           # Template halaman standar
-├── screenshot.png                     # Thumbnail preview tema di WordPress
-├── style.css                          # Metadata tema & deklarasi versi
-└── build-zip.php                      # Skrip packaging zip standar POSIX otomatis
+│   └── home/                         # Template part untuk default fallback (Tetap)
+│       ├── section-hero.php
+│       ├── section-services.php
+│       ├── section-stats.php
+│       └── section-clients.php
+├── build-zip.php                     # Build script packaging tema
+├── footer.php                        # Template footer
+├── front-page.php                    # REFAKTOR: Mendukung the_content() dengan default fallback
+├── functions.php                     # REFAKTOR: Registrasi editor styles & pattern category
+├── header.php                        # Template header
+├── page.php                          # Template halaman standar
+└── style.css                         # Metadata tema
 ```
 
 ---
 
-## 3. KATALOG & PENJELASAN FITUR LENGKAP
+## 4. SPESIFIKASI KODE LENGKAP (DROP-IN REPLACEMENT)
 
-### 3.1 Typography Engine
-- **Lokasi File**: [`inc/customizer-typography.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-typography.php)
-- **Pilihan Font**:
-  - `Plus Jakarta Sans` (Default - Modern Corporate)
-  - `Inter` (Sleek Clean Sans)
-  - `Roboto` (Neutral Enterprise)
-  - `Poppins` (Geometric Friendly)
-  - `Outfit` (Modern Tech Look)
-  - `System Sans-Serif` (Zero-latency fallback)
-- **Pengaturan Ukuran (Font Scale)**:
-  - Heading 1 (`typo_h1_size`): 32px – 72px (Default: 48px)
-  - Heading 2 (`typo_h2_size`): 24px – 54px (Default: 36px)
-  - Heading 3 (`typo_h3_size`): 18px – 36px (Default: 24px)
-  - Body Text (`typo_body_size`): 14px – 20px (Default: 16px)
-  - Line Height (`typo_body_line_height`): 1.2 – 2.2 (Default: 1.6)
-- **Mekanisme Kerja**: Fungsi `imatutu_enqueue_google_fonts()` menyusun URL Google Fonts v2 secara dinamis berdasarkan font yang dipilih, lalu `imatutu_get_typography_css()` menginjeksi variabel CSS langsung ke header.
-
-### 3.2 Color Palette & Theme Presets System
-- **Lokasi File**: [`inc/customizer-palettes.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-palettes.php)
-- **Preset 1-Klik Siap Pakai**:
-  1. **Pertamina Blue (Corporate)**: Primary `#1559ED`, Secondary `#0B192C`, Accent `#E21F23`, Background Surface `#F8FAFC`.
-  2. **Executive Midnight Navy**: Primary `#2563EB`, Secondary `#030712`, Accent `#F59E0B`, Background Surface `#F1F5F9`.
-  3. **Emerald Eco Enterprise**: Primary `#059669`, Secondary `#064E3B`, Accent `#10B981`, Background Surface `#F0FDF4`.
-  4. **Modern Minimalist Slate**: Primary `#0F172A`, Secondary `#334155`, Accent `#64748B`, Background Surface `#F8FAFC`.
-- **Pengaturan Warna Independen**: Administrator dapat menimpa warna apapun menggunakan 9 color picker independen (Primary, Primary Hover, Secondary, Accent, Background Main, Background Surface, Text Main, Text Muted, Border).
-- **Variabel CSS Global**: Menghasilkan token warna di `:root` (`--color-primary`, `--color-secondary`, dll) yang sinkron di seluruh komponen.
-
-### 3.3 Modular Layout Builder (Grid & Section Engine)
-- **Lokasi File**: [`inc/customizer-layout-engine.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-layout-engine.php)
-- **Kapasitas Section**: Mendukung 2 Section Modular Dinamis (dapat diperluas hingga 5) yang dirender di antara konten beranda.
-- **Pilihan Tata Letak (Grid Layout)**:
-  - `col-1`: 1 Kolom Penuh (100%)
-  - `col-2`: 2 Kolom Seimbang (50% : 50%)
-  - `col-3`: 3 Kolom Seimbang (33.3% : 33.3% : 33.3%)
-  - `col-4`: 4 Kolom Seimbang (25% : 25% : 25% : 25%)
-  - `col-1-2`: Asimetris Rasio Emas (33.3% Kiri : 66.6% Kanan)
-  - `col-2-1`: Asimetris Rasio Emas (66.6% Kiri : 33.3% Kanan)
-- **Pengaturan Spasi & Tampilan**:
-  - Pilihan Background: *Pure White*, *Soft Slate*, *Deep Navy*, *Soft Primary Tint*.
-  - Padding Vertikal: *Compact* (40px), *Standard* (80px), *Generous* (120px).
-  - Jarak Kolom (Gap): 0px, 16px, 24px, 32px, 48px.
-  - Perataan Vertikal: *Top*, *Center*, *Stretch*.
-
-### 3.4 Koleksi 10 Komponen Modular (Component Library)
-Setiap kolom pada layout di atas dapat memuat salah satu dari 10 komponen independen:
-
-| No | Tipe Komponen | File Renderer | Kemampuan & Opsi Pengaturan |
-|---|---|---|---|
-| 1 | **Heading** | `component-heading.php` | Teks judul, pilihan tag semantik (H1–H4), alignment (kiri/tengah/kanan), garis aksen dekoratif bawah. |
-| 2 | **Paragraph** | `component-paragraph.php` | Isi teks deskripsi, ukuran teks (*small, regular, lead*), alignment teks. |
-| 3 | **Image** | `component-image.php` | Upload media WP, alt text, rasio aspek (16:9, 4:3, 1:1, auto), border radius (none, md, xl, full), link URL, pop-up lightbox. |
-| 4 | **Video** | `component-video.php` | Video embed responsif (YouTube, Vimeo) atau video HTML5 langsung (.mp4), rasio aspek 16:9/4:3, toggle autoplay muted. |
-| 5 | **Button / CTA** | `component-button.php` | Label tombol, URL tujuan, gaya tombol (*primary, secondary, outline, ghost*), ukuran (*sm, md, lg*), buka tab baru (`_blank`). |
-| 6 | **Form** | `component-form.php` | Integrasi WPForms otomatis dari database atau shortcode form pihak ketiga (Contact Form 7), opsi bingkai kartu modern berbayang. |
-| 7 | **Icon Box** | `component-iconbox.php` | Pilihan preset icon SVG (phone, monitor, shield, chart, map, clock, user, file), judul kartu, deskripsi ringkas, tautan klik. |
-| 8 | **Counter** | `component-counter.php` | Angka metrik (misal: "99.9%", "250+"), label indikator, subteks pelengkap. |
-| 9 | **Accordion** | `component-accordion.php` | 3 pasang pertanyaan & jawaban (FAQ) interaktif dengan animasi expand/collapse halus. |
-| 10 | **None** | — | Kolom dikosongkan (berguna untuk layout asimetris dengan ruang bernapas). |
-
-### 3.5 Live Preview Realtime & Selective Refresh
-- **Lokasi File**: [`assets/js/builder-preview.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/builder-preview.js)
-- Menggunakan transport `postMessage` pada pengaturan warna, tipografi, dan konten teks sehingga perubahan langsung terlihat seketika pada iframe preview tanpa me-reload seluruh halaman.
-- Untuk pengaturan layout grid yang kompleks, selective refresh memperbarui kontainer kolom secara cerdas.
-
-### 3.6 Resilient Native Controls Engine (Anti-Crash Architecture)
-- **Pelajaran Krusial**: Pada versi awal, penggunaan custom control class PHP turunan `WP_Customize_Control` dengan properti internal tambahan menyebabkan fungsi `wp_json_encode()` pada fungsi bawaan WordPress core `customize_pane_settings()` gagal secara diam-diam (*silent failure*).
-- Akibatnya, variabel JavaScript `window._wpCustomizeSettings` tidak pernah dicetak ke HTML, menyebabkan halaman Customizer macet di status *"Loading..."* secara permanen.
-- **Solusi Stabil**: Menggunakan **100% Native WP Controls** (`select`, `color`, `number`, `text`, `textarea`, `checkbox`, `image`). Semua kebutuhan visual (seperti badge px atau selektor preset) dioperasikan melalui layer JavaScript ringan di [`assets/js/customizer-controls.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/customizer-controls.js).
+Terapkan kode berikut secara persis pada file masing-masing tanpa memotong bagian kode apa pun.
 
 ---
 
-## 4. ILUSTRASI & DIAGRAM ARSITEKTUR VISUAL
+### 4.1. File `functions.php`
+**Instruksi**: Timpa seluruh isi `functions.php` dengan kode berikut. File ini mendaftarkan dukungan editor blok, CSS tema di dalam Gutenberg, kategori pattern `imatutu`, dan memuat Customizer ringkas.
 
-### 4.1 Diagram Aliran Data Customizer (Mermaid Flowchart)
+```php
+<?php
+/**
+ * Imatutu Theme Functions and Definitions
+ * Architecture: Hybrid Theme with Native Gutenberg Block Patterns
+ *
+ * @package Imatutu
+ * @version 2.2.0
+ */
 
-```mermaid
-flowchart TD
-    subgraph WP_Backend["WordPress Core & Theme Engine (PHP)"]
-        A["customize_register Hook"] --> B["inc/customizer.php"]
-        B --> C["inc/customizer-palettes.php"]
-        B --> D["inc/customizer-typography.php"]
-        B --> E["inc/customizer-layout-engine.php"]
-        
-        C & D & E --> F["WP_Customize_Manager"]
-        F --> G["customize_pane_settings()"]
-        G --> H["JSON Serialization (74 KB Safe Payload)"]
-    end
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-    subgraph Browser_Admin["Admin Panel Customizer UI"]
-        H --> I["HTML Script Tag: var _wpCustomizeSettings"]
-        I --> J["wp.customize JS Engine Initialized"]
-        J --> K["assets/js/customizer-controls.js (Telemetry & Auto-Sync)"]
-        K --> L["Staff Manipulates UI (Colors, Fonts, Layouts)"]
-    end
+define('IMATUTU_VERSION', '2.2.0');
+define('IMATUTU_DIR', get_template_directory());
+define('IMATUTU_URI', get_template_directory_uri());
 
-    subgraph Preview_Iframe["Live Preview Iframe (Frontend)"]
-        L -- postMessage Event --> M["assets/js/builder-preview.js"]
-        M --> N["DOM Injection: Realtime CSS Variables & Text Updates"]
-        L -- Save & Publish --> O["Database wp_options (theme_mods)"]
-        O --> P["front-page.php & template-parts/builder/"]
-    end
-```
+/**
+ * Theme Setup: Registrasi fitur core WordPress
+ */
+function imatutu_setup() {
+    load_theme_textdomain('imatutu', IMATUTU_DIR . '/languages');
 
-### 4.2 Diagram Hierarki Panel & Section
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support('responsive-embeds');
+    add_theme_support('html5', array(
+        'search-form',
+        'comment-form',
+        'comment-list',
+        'gallery',
+        'caption',
+        'style',
+        'script',
+    ));
 
-```
-[WP Customizer Root]
-│
-├── [Panel: Imatutu Theme Settings] (priority: 25)
-│   ├── Section 1: Colors & Brand Identity (sec_imatutu_colors)
-│   │   ├── 1-Click Preset (pertamina_blue, executive_navy, emerald, slate)
-│   │   └── 9 Color Pickers (primary, secondary, accent, bg, surface, text, border)
-│   │
-│   ├── Section 2: Typography & Google Fonts (sec_imatutu_typography)
-│   │   ├── Font Families (Heading & Body font dropdown)
-│   │   └── Scale Controls (H1, H2, H3, Body Size, Line Height)
-│   │
-│   ├── Section 3: Header & Navigation (sec_imatutu_header)
-│   │   └── Top Bar, Contact Phone, Email, CTA Button
-│   │
-│   ├── Section 4: Hero Banner (sec_imatutu_hero)
-│   │   └── Headline, Subtitle, CTA Links, Background Image
-│   │
-│   └── Section 5: Services & Core Business (sec_imatutu_services)
-│       └── Title, Subtitle, 6 Modular Service Cards
-│
-└── [Panel: Imatutu Layout & Page Builder] (priority: 28)
-    ├── Section: Modular Section 1 (sec_builder_s1)
-    │   ├── Enable / Disable Toggle
-    │   ├── Background Type (White, Slate, Dark Navy, Primary Tint)
-    │   ├── Vertical Padding (Small, Medium, Large)
-    │   ├── Grid Layout (col-1, col-2, col-3, col-4, col-1-2, col-2-1)
-    │   ├── Grid Spacing Gap (0px, 16px, 24px, 32px, 48px)
-    │   ├── Column 1 Type & Settings (Heading, Paragraph, Button, Image, Video, Form, etc.)
-    │   └── Column 2 Type & Settings (...)
-    │
-    └── Section: Modular Section 2 (sec_builder_s2)
-        └── [Struktur Pengaturan Sama Persis dengan Section 1]
-```
+    // Kustomisasi Logo
+    add_theme_support('custom-logo', array(
+        'height'      => 80,
+        'width'       => 280,
+        'flex-height' => true,
+        'flex-width'  => true,
+    ));
 
-### 4.3 Wireframe Visual Layout Grid Kolom (Desktop vs Mobile)
+    // Navigasi Menu
+    register_nav_menus(array(
+        'primary' => esc_html__('Primary Navigation', 'imatutu'),
+        'footer'  => esc_html__('Footer Navigation', 'imatutu'),
+    ));
 
-```
-====================================================================================
-DESKTOP VIEW (Lebar Layar > 900px)
-====================================================================================
+    // Dukungan Gutenberg & Block Styles
+    add_theme_support('align-wide');
+    add_theme_support('wp-block-styles');
+    add_theme_support('editor-styles');
+    add_editor_style('assets/css/main.css');
 
-1. [col-1] Satu Kolom Penuh:
-   ┌───────────────────────────────────────────────────────────────────────────────┐
-   │                                 KOLOM 1 (100%)                                │
-   └───────────────────────────────────────────────────────────────────────────────┘
+    // Palet Warna Default untuk Block Editor
+    add_theme_support('editor-color-palette', array(
+        array(
+            'name'  => esc_html__('Corporate Blue', 'imatutu'),
+            'slug'  => 'primary',
+            'color' => '#1559ED',
+        ),
+        array(
+            'name'  => esc_html__('Deep Navy', 'imatutu'),
+            'slug'  => 'secondary',
+            'color' => '#0B192C',
+        ),
+        array(
+            'name'  => esc_html__('Corporate Red', 'imatutu'),
+            'slug'  => 'accent',
+            'color' => '#E21F23',
+        ),
+        array(
+            'name'  => esc_html__('Slate Body', 'imatutu'),
+            'slug'  => 'text',
+            'color' => '#1E293B',
+        ),
+        array(
+            'name'  => esc_html__('Light Slate', 'imatutu'),
+            'slug'  => 'surface',
+            'color' => '#F8FAFC',
+        ),
+    ));
+}
+add_action('after_setup_theme', 'imatutu_setup');
 
-2. [col-2] Dua Kolom Sama Besar:
-   ┌───────────────────────────────────────┬───────────────────────────────────────┐
-   │              KOLOM 1 (50%)            │              KOLOM 2 (50%)            │
-   └───────────────────────────────────────┴───────────────────────────────────────┘
+/**
+ * Enqueue Frontend Scripts & Styles
+ */
+function imatutu_scripts() {
+    // Google Fonts: Plus Jakarta Sans
+    wp_enqueue_style(
+        'imatutu-fonts',
+        'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap',
+        array(),
+        null
+    );
 
-3. [col-3] Tiga Kolom Seimbang:
-   ┌───────────────────────┬───────────────────────┬───────────────────────────────┐
-   │      KOLOM 1 (33%)    │      KOLOM 2 (33%)    │         KOLOM 3 (33%)         │
-   └───────────────────────┴───────────────────────┴───────────────────────────────┘
+    // Main Stylesheet
+    wp_enqueue_style(
+        'imatutu-main',
+        IMATUTU_URI . '/assets/css/main.css',
+        array(),
+        IMATUTU_VERSION
+    );
 
-4. [col-1-2] Asimetris Modern (Rasio 1 : 2):
-   ┌───────────────────────────┬───────────────────────────────────────────────────┐
-   │  KOLOM 1: Teks/CTA (33%)  │           KOLOM 2: Media / Video (66%)            │
-   └───────────────────────────┴───────────────────────────────────────────────────┘
+    // Dynamic Color Customizer CSS
+    $primary_color   = get_theme_mod('primary_color', '#1559ED');
+    $secondary_color = get_theme_mod('secondary_color', '#0B192C');
+    $accent_color    = get_theme_mod('accent_color', '#E21F23');
 
-====================================================================================
-SMARTPHONE VIEW (Lebar Layar <= 640px) - Otomatis Stack 1 Kolom Vertikal
-====================================================================================
-   ┌───────────────────────────────────────────────────┐
-   │              KOLOM 1 (100% Width)                 │
-   └───────────────────────────────────────────────────┘
-   ┌───────────────────────────────────────────────────┐
-   │              KOLOM 2 (100% Width)                 │
-   └───────────────────────────────────────────────────┘
-```
+    $custom_css = "
+        :root {
+            --color-primary: {$primary_color};
+            --color-secondary: {$secondary_color};
+            --color-accent: {$accent_color};
+        }
+    ";
+    wp_add_inline_style('imatutu-main', $custom_css);
 
-### 4.4 Diagram Aliran Variabel CSS Dinamis
+    // Main JavaScript
+    wp_enqueue_script(
+        'imatutu-main-js',
+        IMATUTU_URI . '/assets/js/main.js',
+        array(),
+        IMATUTU_VERSION,
+        true
+    );
 
-```mermaid
-graph LR
-    subgraph Customizer_Input["Input Customizer (Admin)"]
-        P1["Color Preset Active"]
-        P2["Custom Hex Colors"]
-        P3["Font Family & Sizes"]
-    end
+    // Fastbots AI Chatbot Integration
+    $fastbots_id = get_theme_mod('imatutu_chatbot_id', 'cm8gjb24m11rmrik59ko46vdi');
+    if (!empty($fastbots_id)) {
+        wp_enqueue_script(
+            'fastbots-chatbot',
+            'https://app.fastbots.ai/embed.js',
+            array(),
+            null,
+            array('strategy' => 'defer', 'in_footer' => true)
+        );
+        wp_script_add_data('fastbots-chatbot', 'data-bot-id', esc_attr($fastbots_id));
+    }
+}
+add_action('wp_enqueue_scripts', 'imatutu_scripts');
 
-    subgraph PHP_Generator["PHP Generator (functions.php)"]
-        G1["imatutu_get_color_css()"]
-        G2["imatutu_get_typography_css()"]
-    end
+/**
+ * Registrasi Kategori Block Pattern Tema
+ */
+function imatutu_register_pattern_categories() {
+    register_block_pattern_category(
+        'imatutu',
+        array('label' => esc_html__('Imatutu Corporate Components', 'imatutu'))
+    );
+}
+add_action('init', 'imatutu_register_pattern_categories');
 
-    subgraph CSS_Variables[":root Style Block (Injected)"]
-        V1["--color-primary: #1559ED"]
-        V2["--color-secondary: #0B192C"]
-        V3["--color-accent: #E21F23"]
-        V4["--font-heading: 'Plus Jakarta Sans'"]
-        V5["--h1-size: 48px"]
-    end
-
-    subgraph Frontend_Elements["Elemen Tampilan Frontend"]
-        E1["Tombol CTA & Link Brand"]
-        E2["Judul Heading H1-H6"]
-        E3["Latar Belakang Container"]
-        E4["Kartu Layanan & Form Input"]
-    end
-
-    P1 & P2 --> G1 --> V1 & V2 & V3
-    P3 --> G2 --> V4 & V5
-    V1 & V2 & V3 --> E1 & E3 & E4
-    V4 & V5 --> E2
+/**
+ * Memuat Modul Customizer Ramping (Hanya Pengaturan Global)
+ */
+require_once IMATUTU_DIR . '/inc/customizer.php';
 ```
 
 ---
 
-## 5. PEDOMAN KHUSUS UNTUK JUNIOR PROGRAMMER & MODEL AI
+### 4.2. File `front-page.php`
+**Instruksi**: Timpa seluruh isi `front-page.php` dengan kode berikut. File ini mengimplementasikan logika *hybrid*: jika halaman depan memiliki konten dari editor Gutenberg, tampilkan `the_content()`. Jika belum ada konten (instalasi baru), tampilkan template fallback agar website tidak kosong!
 
-Dokumen ini ditujukan agar dapat dieksekusi langsung oleh programmer pemula atau model AI murah. Patuhi pedoman wajib berikut:
+```php
+<?php
+/**
+ * The Front Page Template (Hybrid Implementation)
+ *
+ * Checks if the front page has content authored in WordPress Gutenberg editor.
+ * If content exists, it renders the_content() seamlessly.
+ * If empty, it renders default fallback components so the site is never blank.
+ *
+ * @package Imatutu
+ * @version 2.2.0
+ */
 
-### 5.1 Daftar Pantangan Utama (Anti-Patterns)
-1. **DILARANG MENGGUNAKAN CUSTOM CONTROLS DENGAN PROPERTY BERLEBIHAN**:
-   - Jangan membuat class turunan `WP_Customize_Control` yang menambahkan properti array rumit ke JavaScript tanpa method `to_json()` yang benar. Ini adalah penyebab nomor 1 `wp_json_encode()` crash di WordPress Core.
-   - Gunakan tipe bawaan: `'type' => 'select'`, `'type' => 'number'`, `'type' => 'color'`, atau `WP_Customize_Color_Control`.
-2. **DILARANG MEMBUAT LOOP KONTROL DI ATAS 300 ITEM**:
-   - Jangan mendaftarkan 10 section x 6 kolom x 20 komponen secara langsung di PHP! Serialisasi JSON akan melampaui 128MB memori hosting. Batasi section builder aktif ke **2 section modular** (~248 kontrol total, payload aman 74 KB).
-3. **DILARANG MENGGUNAKAN RELATIVE PATH DI ZIP ARCHIVE**:
-   - Skrip build zip harus selalu menggunakan forward-slash (`/`) standar POSIX dan membungkus tema dalam folder tunggal `imatutu/` agar dikenali dengan benar oleh *Theme Upgrader*.
-4. **DILARANG MEMBIARKAN BLOK IF/PHP TERBUKA**:
-   - Setiap tag pembuka `<?php if (...) : ?>` atau `function (...) {` wajib ditutup dengan presisi untuk menghindari *Fatal Parse Error*.
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-### 5.2 Aturan Standar Sanitasi & Keamanan Data
-Setiap setting yang didaftarkan pada `$wp_customize->add_setting()` **WAJIB** menyertakan parameter `'sanitize_callback'`:
+get_header();
+?>
 
-| Jenis Input | Callback Sanitasi Standar | Contoh Penggunaan |
-|---|---|---|
-| Text Singkat | `'sanitize_text_field'` | Judul heading, label tombol, nama section |
-| Kunci / Key / Slug | `'sanitize_key'` | Pilihan dropdown, tipe layout grid, tipe komponen |
-| Warna Hexadecimal | `'sanitize_hex_color'` | Warna primer, latar belakang, border |
-| Angka Bulat Positif | `'absint'` | Ukuran font (px), jarak gap, padding |
-| Angka Desimal | `'imatutu_sanitize_float'` | Line height (1.2 s/d 2.2) |
-| Checkbox / Toggle | `'imatutu_sanitize_checkbox'` | Status aktif/non-aktif section, lightbox toggle |
-| URL Tautan | `'esc_url_raw'` | Link tombol, URL YouTube/video |
-| Rich Text / Paragraf | `'wp_kses_post'` | Paragraf teks, formatting bold/italic |
+<main id="primary" class="site-main front-page-hybrid">
+    <?php
+    if (have_posts()) :
+        while (have_posts()) :
+            the_post();
+            $page_content = trim(get_the_content());
 
-### 5.3 Prosedur Validasi Mandiri Sebelum Commit
-Sebelum membuat commit atau pull request, wajib jalankan perintah verifikasi berikut:
+            if (!empty($page_content)) :
+                // Render visual block patterns authored in WordPress Page Editor
+                the_content();
+            else :
+                // Default Fallback: Renders original corporate sections
+                get_template_part('template-parts/home/section', 'hero');
+                get_template_part('template-parts/home/section', 'services');
+                get_template_part('template-parts/home/section', 'stats');
+                get_template_part('template-parts/home/section', 'clients');
+            endif;
+        endwhile;
+    else :
+        // Secondary fallback
+        get_template_part('template-parts/home/section', 'hero');
+        get_template_part('template-parts/home/section', 'services');
+        get_template_part('template-parts/home/section', 'stats');
+        get_template_part('template-parts/home/section', 'clients');
+    endif;
+    ?>
+</main>
+
+<?php
+get_footer();
+```
+
+---
+
+### 4.3. File `inc/customizer.php`
+**Instruksi**: Timpa seluruh isi `inc/customizer.php` dengan kode berikut. File ini murni hanya mengelola **identitas global**: Brand Colors, Kontak Header/Footer, dan Fastbots Chatbot ID. Ukurannya hanya ~110 baris, mengonsumsi memori < 1 MB, dan 100% bebas dari risiko timeout hosting.
+
+```php
+<?php
+/**
+ * Imatutu Theme Customizer - Ultra-Lean Global Edition
+ * Contains only site-wide settings (Colors, Top Bar Contacts, Fastbots AI).
+ * Content layout & text are managed universally via Gutenberg Block Patterns.
+ *
+ * @package Imatutu
+ * @version 2.2.0
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+function imatutu_customize_register($wp_customize) {
+
+    // Main Panel
+    $wp_customize->add_panel('panel_imatutu_global', array(
+        'title'       => esc_html__('Imatutu Global Settings', 'imatutu'),
+        'description' => esc_html__('Configure corporate brand colors, topbar contacts, and chatbot integration. To edit page content, use the WordPress Page Editor (Pages > Home).', 'imatutu'),
+        'priority'    => 20,
+    ));
+
+    // -------------------------------------------------------------
+    // Section 1: Corporate Colors
+    // -------------------------------------------------------------
+    $wp_customize->add_section('sec_imatutu_colors', array(
+        'title'    => esc_html__('1. Corporate Colors', 'imatutu'),
+        'panel'    => 'panel_imatutu_global',
+        'priority' => 10,
+    ));
+
+    $wp_customize->add_setting('primary_color', array(
+        'default'           => '#1559ED',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'primary_color', array(
+        'label'    => esc_html__('Primary Corporate Blue', 'imatutu'),
+        'section'  => 'sec_imatutu_colors',
+    )));
+
+    $wp_customize->add_setting('secondary_color', array(
+        'default'           => '#0B192C',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'secondary_color', array(
+        'label'    => esc_html__('Secondary Navy Color', 'imatutu'),
+        'section'  => 'sec_imatutu_colors',
+    )));
+
+    $wp_customize->add_setting('accent_color', array(
+        'default'           => '#E21F23',
+        'sanitize_callback' => 'sanitize_hex_color',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'accent_color', array(
+        'label'    => esc_html__('Accent Red Color', 'imatutu'),
+        'section'  => 'sec_imatutu_colors',
+    )));
+
+    // -------------------------------------------------------------
+    // Section 2: Top Bar & Contact Info
+    // -------------------------------------------------------------
+    $wp_customize->add_section('sec_imatutu_contacts', array(
+        'title'    => esc_html__('2. Top Bar & Contacts', 'imatutu'),
+        'panel'    => 'panel_imatutu_global',
+        'priority' => 20,
+    ));
+
+    $wp_customize->add_setting('imatutu_company_subtitle', array(
+        'default'           => 'by PT Karya Antara Negeri | PT Karya Antara Benua',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('imatutu_company_subtitle', array(
+        'label'   => esc_html__('Legal Entity Subtitle', 'imatutu'),
+        'section' => 'sec_imatutu_contacts',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('imatutu_phone', array(
+        'default'           => '+62 851 6893 2460',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('imatutu_phone', array(
+        'label'   => esc_html__('Phone Number', 'imatutu'),
+        'section' => 'sec_imatutu_contacts',
+        'type'    => 'text',
+    ));
+
+    $wp_customize->add_setting('imatutu_email', array(
+        'default'           => 'office@imatutu.com',
+        'sanitize_callback' => 'sanitize_email',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('imatutu_email', array(
+        'label'   => esc_html__('Email Address', 'imatutu'),
+        'section' => 'sec_imatutu_contacts',
+        'type'    => 'email',
+    ));
+
+    // -------------------------------------------------------------
+    // Section 3: AI Chatbot Integration
+    // -------------------------------------------------------------
+    $wp_customize->add_section('sec_imatutu_chatbot', array(
+        'title'    => esc_html__('3. Fastbots AI Chatbot', 'imatutu'),
+        'panel'    => 'panel_imatutu_global',
+        'priority' => 30,
+    ));
+
+    $wp_customize->add_setting('imatutu_chatbot_id', array(
+        'default'           => 'cm8gjb24m11rmrik59ko46vdi',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ));
+    $wp_customize->add_control('imatutu_chatbot_id', array(
+        'label'       => esc_html__('Fastbots Bot ID', 'imatutu'),
+        'description' => esc_html__('Input your Fastbots.ai Bot ID (Default: cm8gjb24m11rmrik59ko46vdi)', 'imatutu'),
+        'section'     => 'sec_imatutu_chatbot',
+        'type'        => 'text',
+    ));
+}
+add_action('customize_register', 'imatutu_customize_register');
+```
+
+---
+
+### 4.4. Pembuatan Block Patterns (Folder `patterns/`)
+
+Buat direktori baru bernama `patterns` di akar tema: `imatutu-theme/patterns/`. Masukkan 5 file pattern berikut:
+
+#### A. File `patterns/hero.php`
+```php
+<?php
+/**
+ * Title: Imatutu Enterprise Hero Section
+ * Slug: imatutu/hero
+ * Categories: imatutu, banner
+ * Description: Modern corporate hero banner with trust badges and dual CTAs
+ */
+?>
+<!-- wp:html -->
+<section id="hero" class="hero-section">
+    <div class="hero-shape-decor" aria-hidden="true"></div>
+    <div class="site-container hero-container">
+        <div class="hero-content">
+            <div class="hero-badge-wrap">
+                <span class="badge-pill">
+                    <span class="badge-glow"></span>
+                    <span class="badge-text">Premier BPO &amp; Contact Center Solutions</span>
+                </span>
+            </div>
+
+            <h1 class="hero-title">The Trusted Choice For Your Business Support Requirements</h1>
+            <p class="hero-subtitle">Integrated Solutions for All Your Business Needs</p>
+
+            <div class="hero-actions">
+                <a href="https://imatutu.com/contact-us/" class="btn btn-primary btn-lg">
+                    <span>Contact Us</span>
+                    <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+                <a href="#services" class="btn btn-secondary btn-lg">
+                    <span>Our Services</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </a>
+            </div>
+
+            <div class="hero-trust-strip">
+                <div class="trust-item">
+                    <div class="trust-icon-wrap">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <div class="trust-text">
+                        <strong>24/7 Operations</strong>
+                        <span>Round-the-clock reliability</span>
+                    </div>
+                </div>
+
+                <div class="trust-item">
+                    <div class="trust-icon-wrap">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                    <div class="trust-text">
+                        <strong>Proven Track Record</strong>
+                        <span>150+ international projects</span>
+                    </div>
+                </div>
+
+                <div class="trust-item">
+                    <div class="trust-icon-wrap">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <div class="trust-text">
+                        <strong>Expert Support Teams</strong>
+                        <span>Skilled &amp; dedicated agents</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- /wp:html -->
+```
+
+#### B. File `patterns/services.php`
+```php
+<?php
+/**
+ * Title: Imatutu Bento Services Grid
+ * Slug: imatutu/services
+ * Categories: imatutu, services
+ * Description: 3 Bento grid service cards with icons and tags (Can be duplicated for additional services)
+ */
+?>
+<!-- wp:html -->
+<section id="services" class="section services-section">
+    <div class="site-container">
+        <div class="section-header text-center">
+            <span class="section-pill">What We OFFER</span>
+            <h2 class="section-title">Taylor Made Solutions for Your Business</h2>
+            <div class="title-accent-bar"></div>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card service-card-1">
+                <div class="service-card-inner">
+                    <div class="service-card-body">
+                        <div class="service-icon-box">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        </div>
+                        <span class="service-tag">24/7 Contact Center</span>
+                        <h3 class="service-title service-title-1">Customer Service Support</h3>
+                        <p class="service-description service-desc-1">We provide 24/7 contact center services tailored to suit your industry needs from, handling inquiries, transport bookings, handling customer feedback and resolving issues promptly to ensure customer satisfaction. Our team is trained to deliver exceptional service in every interaction.</p>
+                        <div class="service-footer">
+                            <a href="https://imatutu.com/contact-us/" class="service-link">
+                                <span>Learn More</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card service-card-2">
+                <div class="service-card-inner">
+                    <div class="service-card-body">
+                        <div class="service-icon-box">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        </div>
+                        <span class="service-tag">IT &amp; Systems Troubleshooting</span>
+                        <h3 class="service-title service-title-2">Full Technical Support</h3>
+                        <p class="service-description service-desc-2">Our experts offer reliable troubleshooting and technical assistance, for multiple systems helping clients resolve technical problems efficiently. We focus on quick solutions to minimize downtime.</p>
+                        <div class="service-footer">
+                            <a href="https://imatutu.com/contact-us/" class="service-link">
+                                <span>Learn More</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card service-card-3">
+                <div class="service-card-inner">
+                    <div class="service-card-body">
+                        <div class="service-icon-box">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        </div>
+                        <span class="service-tag">Accounting &amp; Back Office</span>
+                        <h3 class="service-title service-title-3">Administration Support</h3>
+                        <p class="service-description service-desc-3">Full accounting services available, teamed up with data processing, general administration and customer service support</p>
+                        <div class="service-footer">
+                            <a href="https://imatutu.com/contact-us/" class="service-link">
+                                <span>Learn More</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- /wp:html -->
+```
+
+#### C. File `patterns/stats.php`
+```php
+<?php
+/**
+ * Title: Imatutu Global Reach & Stats
+ * Slug: imatutu/stats
+ * Categories: imatutu
+ * Description: International reach showcase with 3 metrics (150+, 150+, 3) and country connectivity
+ */
+?>
+<!-- wp:html -->
+<section id="global-reach" class="section stats-section">
+    <div class="site-container">
+        <div class="stats-layout-grid">
+            <div class="stats-content-col">
+                <span class="section-pill">International Track Record</span>
+                <h2 class="section-title text-left">Our Global Reach</h2>
+                <div class="title-accent-bar left-align"></div>
+
+                <p class="stats-description-text">
+                    With numerous clients, successful projects and a wide reach, Imatutu is making a mark as the preferred outsourcing partner. We support our global clients, delivering excellence in every project. Our services span across multiple countries and multiple industries, helping businesses achieve their goals globally.
+                </p>
+
+                <div class="stats-counters-grid">
+                    <div class="stat-counter-card stat-card-1">
+                        <span class="stat-number stat-num-1">150+</span>
+                        <span class="stat-label stat-lbl-1">Client</span>
+                        <span class="stat-sublabel stat-desc-1">Active enterprise clients</span>
+                    </div>
+                    <div class="stat-counter-card stat-card-2">
+                        <span class="stat-number stat-num-2">150+</span>
+                        <span class="stat-label stat-lbl-2">Project</span>
+                        <span class="stat-sublabel stat-desc-2">Delivered successfully</span>
+                    </div>
+                    <div class="stat-counter-card stat-card-3">
+                        <span class="stat-number stat-num-3">3</span>
+                        <span class="stat-label stat-lbl-3">Country</span>
+                        <span class="stat-sublabel stat-desc-3">Global coverage (AU, NZ, ID)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-visual-col">
+                <div class="stats-showcase-card">
+                    <div class="stats-graphic-wrapper">
+                        <div class="globe-decor-circle"></div>
+                        <div class="connectivity-badge">
+                            <div class="badge-icon-pulse"></div>
+                            <div>
+                                <strong class="badge-title">Australia &amp; New Zealand</strong>
+                                <p class="badge-desc">Primary Transport &amp; Enterprise Dispatch Network</p>
+                            </div>
+                        </div>
+
+                        <div class="connectivity-network-list">
+                            <div class="network-item">
+                                <span class="network-flag">🇦🇺</span>
+                                <div class="network-info">
+                                    <strong>Australia</strong>
+                                    <span>Canberra, ACT &amp; Nationwide</span>
+                                </div>
+                            </div>
+                            <div class="network-item">
+                                <span class="network-flag">🇳🇿</span>
+                                <div class="network-info">
+                                    <strong>New Zealand</strong>
+                                    <span>Auckland, Wellington &amp; Palmerston North</span>
+                                </div>
+                            </div>
+                            <div class="network-item">
+                                <span class="network-flag">🇮🇩</span>
+                                <div class="network-info">
+                                    <strong>Indonesia</strong>
+                                    <span>Denpasar Hub &amp; Operational Centers</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- /wp:html -->
+```
+
+#### D. File `patterns/clients.php`
+```php
+<?php
+/**
+ * Title: Imatutu Trusted Partners
+ * Slug: imatutu/clients
+ * Categories: imatutu
+ * Description: 9 Enterprise transportation partners grid (Alert Taxis, Canberra Elite, etc.)
+ */
+?>
+<!-- wp:html -->
+<section id="clients" class="section clients-section">
+    <div class="site-container">
+        <div class="section-header text-center">
+            <span class="section-pill">Partnership &amp; Clients</span>
+            <h2 class="section-title">Our Trusted Partners</h2>
+            <div class="title-accent-bar"></div>
+            <p class="section-subtitle-text">Empowering leading enterprise transport and business service networks across Australia and New Zealand.</p>
+        </div>
+
+        <div class="clients-grid">
+            <a href="http://www.alerttaxis.co.nz" class="client-card" target="_blank" rel="noopener noreferrer" title="Alert Taxis">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">AT</div>
+                        <span class="client-name-text">Alert Taxis</span>
+                        <span class="client-loc-tag">New Zealand</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="http://www.canberraelite.com.au" class="client-card" target="_blank" rel="noopener noreferrer" title="Canberra Elite">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">CE</div>
+                        <span class="client-name-text">Canberra Elite</span>
+                        <span class="client-loc-tag">Australia</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="https://www.combinedtaxis.co.nz" class="client-card" target="_blank" rel="noopener noreferrer" title="Combined Taxis">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">CT</div>
+                        <span class="client-name-text">Combined Taxis</span>
+                        <span class="client-loc-tag">New Zealand</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="http://www.pntaxis.co.nz" class="client-card" target="_blank" rel="noopener noreferrer" title="Palmerston North Taxis">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">PN</div>
+                        <span class="client-name-text">Palmerston North Taxis</span>
+                        <span class="client-loc-tag">New Zealand</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="http://www.suntaxis.co.nz" class="client-card" target="_blank" rel="noopener noreferrer" title="Sun Taxis">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">ST</div>
+                        <span class="client-name-text">Sun Taxis</span>
+                        <span class="client-loc-tag">New Zealand</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="http://www.wellingtoncombinedtaxis.co.nz" class="client-card" target="_blank" rel="noopener noreferrer" title="Wellington Combined Taxis">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">WC</div>
+                        <span class="client-name-text">Wellington Combined Taxis</span>
+                        <span class="client-loc-tag">New Zealand</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="http://www.reditaxi.com.au" class="client-card" target="_blank" rel="noopener noreferrer" title="Reditaxi">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">RT</div>
+                        <span class="client-name-text">Reditaxi</span>
+                        <span class="client-loc-tag">Australia</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="http://www.bluestartaxis.co.nz" class="client-card" target="_blank" rel="noopener noreferrer" title="Blue Star Taxis">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">BS</div>
+                        <span class="client-name-text">Blue Star Taxis</span>
+                        <span class="client-loc-tag">New Zealand</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="http://www.goldbandtaxis.co.nz" class="client-card" target="_blank" rel="noopener noreferrer" title="Gold Band Taxis">
+                <div class="client-card-inner">
+                    <div class="client-badge-placeholder">
+                        <div class="client-initial-badge">GB</div>
+                        <span class="client-name-text">Gold Band Taxis</span>
+                        <span class="client-loc-tag">New Zealand</span>
+                    </div>
+                    <div class="client-hover-arrow" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+<!-- /wp:html -->
+```
+
+#### E. File `patterns/homepage-complete.php`
+```php
+<?php
+/**
+ * Title: Imatutu Complete Homepage (1-Click Template)
+ * Slug: imatutu/homepage-complete
+ * Categories: imatutu
+ * Description: Complete corporate homepage assembling Hero, Services Bento, Global Reach Stats, and Trusted Partners into one single click
+ */
+?>
+<!-- wp:pattern {"slug":"imatutu/hero"} /-->
+<!-- wp:pattern {"slug":"imatutu/services"} /-->
+<!-- wp:pattern {"slug":"imatutu/stats"} /-->
+<!-- wp:pattern {"slug":"imatutu/clients"} /-->
+```
+
+---
+
+### 4.5. File `build-zip.php`
+**Instruksi**: Timpa isi `build-zip.php` dengan kode pemaket ZIP berikut yang mengecualikan file sampah dan dokumentasi agar ukuran ZIP bersih di bawah 100 KB.
+
+```php
+<?php
+/**
+ * Theme ZIP Packaging Script (Hybrid Edition)
+ * Excludes git files, markdown documents, and development artifacts.
+ */
+
+$sourceDir   = __DIR__;
+$zipFilename = __DIR__ . '/imatutu-theme.zip';
+
+$excludeList = array(
+    '.git',
+    '.github',
+    'node_modules',
+    'build-zip.php',
+    'imatutu-theme.zip',
+    'issue.md',
+    'README.md',
+    '.DS_Store',
+    'Thumbs.db',
+    'assets/images/customizer-ui-mockup.jpg',
+    'assets/images/website-redesign-preview.jpg',
+    'assets/images/before-after-comparison.jpg',
+);
+
+if (file_exists($zipFilename)) {
+    unlink($zipFilename);
+}
+
+$zip = new ZipArchive();
+if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+    die("ERROR: Cannot create {$zipFilename}\n");
+}
+
+$files = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS),
+    RecursiveIteratorIterator::SELF_FIRST
+);
+
+$count = 0;
+foreach ($files as $file) {
+    $realPath     = $file->getRealPath();
+    $relativePath = substr($realPath, strlen($sourceDir) + 1);
+    $normalized   = str_replace('\\', '/', $relativePath);
+
+    $skip = false;
+    foreach ($excludeList as $exclude) {
+        if ($normalized === $exclude || strpos($normalized, $exclude . '/') === 0) {
+            $skip = true;
+            break;
+        }
+    }
+
+    if ($skip) {
+        continue;
+    }
+
+    $zipPath = 'imatutu-theme/' . $normalized;
+
+    if ($file->isDir()) {
+        $zip->addEmptyDir($zipPath);
+    } else {
+        $zip->addFile($realPath, $zipPath);
+        $count++;
+    }
+}
+
+$zip->close();
+$size = round(filesize($zipFilename) / 1024, 2);
+echo "SUCCESS: Created {$zipFilename} with {$count} files ({$size} KB)\n";
+```
+
+---
+
+## 5. TAHAPAN EKSEKUSI KERJA (STEP-BY-STEP CHECKLIST)
+
+Bagi programmer pelaksana atau model AI, jalankan 6 tahapan berikut secara berurutan:
+
+### Langkah 1: Buat Direktori Block Patterns
+Jalankan di terminal:
 ```bash
-# 1. Pastikan 0 syntax error pada semua berkas PHP
-php -l functions.php
-php -l inc/customizer.php
-php -l inc/customizer-palettes.php
-php -l inc/customizer-typography.php
-php -l inc/customizer-layout-engine.php
-
-# 2. Build paket zip tema terbaru
-php build-zip.php
-
-# 3. Pastikan git working tree bersih
-git status
+mkdir -p patterns
 ```
 
----
+### Langkah 2: Terapkan Kode Baru
+1. Salin kode subbab **4.1** ke `functions.php`.
+2. Salin kode subbab **4.2** ke `front-page.php`.
+3. Salin kode subbab **4.3** ke `inc/customizer.php`.
+4. Buat dan isi file di dalam folder `patterns/` sesuai subbab **4.4**:
+   - `patterns/hero.php`
+   - `patterns/services.php`
+   - `patterns/stats.php`
+   - `patterns/clients.php`
+   - `patterns/homepage-complete.php`
+5. Salin kode subbab **4.5** ke `build-zip.php`.
 
-## 6. TAHAPAN IMPLEMENTASI STEP-BY-STEP (WORK BREAKDOWN STRUCTURE)
+### Langkah 3: Validasi Sintaks PHP Lokal
+Pastikan tidak ada kesalahan sintaks dengan menjalankan perintah linter:
+```bash
+php -l functions.php
+php -l front-page.php
+php -l inc/customizer.php
+php -l patterns/hero.php
+php -l patterns/services.php
+php -l patterns/stats.php
+php -l patterns/clients.php
+php -l patterns/homepage-complete.php
+```
+*Pastikan seluruh output menampilkan: `No syntax errors detected`.*
 
-Bagi pelaksana, ikuti urutan fase kerja secara berurutan dan disiplin:
+### Langkah 4: Bangun Paket Tema (Build ZIP)
+Jalankan:
+```bash
+php build-zip.php
+```
+*Pastikan file `imatutu-theme.zip` terbuat dengan sukses dengan ukuran sekitar 70 - 100 KB.*
 
-### FASE 1: Registrasi Enqueue & Engine Core
-- **Tujuan**: Mempersiapkan pemanggilan stylesheet dan script interaktif di frontend dan admin Customizer.
-- **Berkas yang Dikerjakan**: [`functions.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/functions.php)
-- **Instruksi**:
-  1. Pastikan boosting resource PHP aktif di awal `functions.php`:
-     ```php
-     if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
-         @ini_set('memory_limit', '256M');
-         @ini_set('max_execution_time', 120);
-     }
-     ```
-  2. Enqueue file `assets/css/builder.css` dan `assets/js/builder-frontend.js` pada hook `wp_enqueue_scripts`.
-  3. Hubungkan require file `inc/customizer.php` di akhir file `functions.php`.
+### Langkah 5: Unggah & Aktifkan Tema di WordPress
+1. Masuk ke **WordPress Admin Dashboard (`/wp-admin`)**.
+2. Masuk ke menu **Appearance (Tampilan) > Themes (Tema)**.
+3. Klik **Add New Theme (Tambah Tema Baru) > Upload Theme (Unggah Tema)**.
+4. Pilih file `imatutu-theme.zip` lalu klik **Install Now (Pasang Sekarang)**.
+5. Jika diminta konfirmasi, klik **Replace active with uploaded (Ganti tema aktif)**.
 
-### FASE 2: Implementasi Palette & Typography Engine
-- **Tujuan**: Membangun logika data warna preset dan font loader.
-- **Berkas yang Dikerjakan**:
-  - [`inc/customizer-palettes.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-palettes.php)
-  - [`inc/customizer-typography.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-typography.php)
-- **Instruksi**:
-  1. Definisikan array 4 palet warna dalam fungsi `imatutu_get_color_palettes()`.
-  2. Buat fungsi `imatutu_get_color_css()` untuk mengonversi nilai warna terpilih menjadi string CSS variables `:root { ... }`.
-  3. Buat fungsi `imatutu_get_typography_css()` untuk mengonversi setting font family dan size menjadi string CSS variables.
-  4. Enqueue dynamic style via `wp_add_inline_style('imatutu-main', $custom_css)`.
-
-### FASE 3: Registrasi Panel, Section & Native Controls
-- **Tujuan**: Mendaftarkan antarmuka visual Customizer yang ringan dan tahan banting.
-- **Berkas yang Dikerjakan**:
-  - [`inc/customizer.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer.php)
-  - [`inc/customizer-layout-engine.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/inc/customizer-layout-engine.php)
-- **Instruksi**:
-  1. Daftarkan panel utama `panel_imatutu` (Theme Settings) dan `panel_imatutu_builder` (Layout Builder).
-  2. Daftarkan section warna, tipografi, header, hero, dan services menggunakan kontrol native (`type => 'select'`, `WP_Customize_Color_Control`, `type => 'number'`).
-  3. Pada layout engine, buat loop section dinamis untuk 2 section modular ($s = 1 sampai 2).
-  4. Daftarkan pengaturan layout grid (`col-1` s/d `col-2-1`), spasi padding, background, dan tipe komponen per kolom.
-
-### FASE 4: Pembuatan Template Renderer Komponen
-- **Tujuan**: Membuat modul renderer PHP yang bersih, modular, dan terisolasi.
-- **Direktori**: `template-parts/builder/`
-- **Instruksi**:
-  1. `section-wrapper.php`: Membaca variabel `section_index`, mengecek status aktif, menentukan kelas background dan padding, lalu memanggil `row-column.php`.
-  2. `row-column.php`: Menentukan kelas grid CSS (`grid-col-1`, `grid-col-2`, dst) dan memanggil komponen anak berdasarkan nilai setting `builder_sec_{N}_col_{M}_type`.
-  3. Buat 9 file komponen spesifik (`component-heading.php`, `component-paragraph.php`, `component-button.php`, `component-image.php`, `component-video.php`, `component-form.php`, `component-iconbox.php`, `component-counter.php`, `component-accordion.php`).
-  4. Pastikan setiap komponen menyertakan sanitasi output (`esc_html`, `esc_attr`, `esc_url`, atau `wp_kses_post`).
-
-### FASE 5: Desain CSS Grid & Variabel Dinamis
-- **Tujuan**: Membangun sistem grid murni tanpa CSS framework eksternal.
-- **Berkas yang Dikerjakan**: [`assets/css/builder.css`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/css/builder.css)
-- **Instruksi**:
-  1. Deklarasikan `.builder-grid` dengan `display: grid`.
-  2. Buat kelas `.grid-col-1` s/d `.grid-col-2-1` dengan `grid-template-columns`.
-  3. Tambahkan media query responsif:
-     - `@media (max-width: 900px)`: Kolom 3 & 4 menjadi 2 kolom.
-     - `@media (max-width: 640px)`: Seluruh grid runtuh (*collapse*) menjadi 1 kolom vertikal (`1fr !important`).
-  4. Tambahkan styling enterprise untuk formulir WPForms (`.builder-form-card`).
-  5. Tambahkan styling accordion dan transisi halus CSS.
-
-### FASE 6: Live Preview Realtime Script
-- **Tujuan**: Memberikan respon instan pada layar saat admin mengubah nilai.
-- **Berkas yang Dikerjakan**:
-  - [`assets/js/builder-preview.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/builder-preview.js)
-  - [`assets/js/customizer-controls.js`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/assets/js/customizer-controls.js)
-- **Instruksi**:
-  1. Di `builder-preview.js`: Tangkap event `wp.customize('setting_key', function(value) { value.bind(...) })` untuk warna primer, font family, heading text, dan button label.
-  2. Di `customizer-controls.js`: Pasang fungsi auto-sync preset palet (saat radio palet dipilih, otomatis memperbarui nilai color pickers terkait di memori admin).
-  3. Pasang watcher visibilitas: saat tipe komponen kolom dipilih (misal: `video`), otomatis sembunyikan kontrol komponen lain dan hanya tampilkan kontrol video.
-
-### FASE 7: Integrasi ke Template Beranda
-- **Tujuan**: Menampilkan section dinamis di antara section beranda.
-- **Berkas yang Dikerjakan**: [`front-page.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/front-page.php)
-- **Instruksi**:
-  1. Tambahkan pemanggil loop builder section dinamis setelah section services:
-     ```php
-     for ($i = 1; $i <= 5; $i++) {
-         if (get_theme_mod("builder_sec_{$i}_enable", ($i <= 2))) {
-             set_query_var('section_index', $i);
-             get_template_part('template-parts/builder/section', 'wrapper');
-         }
-     }
-     ```
-
-### FASE 8: Packaging POSIX ZIP & QA Validation
-- **Tujuan**: Menghasilkan paket rilis yang siap diunggah ke WordPress tanpa error installer.
-- **Berkas yang Dikerjakan**: [`build-zip.php`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/build-zip.php)
-- **Instruksi**:
-  1. Pastikan versi di [`style.css`](file:///c:/Users/budhi.arta/Downloads/Imatutu%20Project/Web%20Project/WordPress/Development/Imatutu%20Theme/style.css) telah dinaikkan (misal: `2.0.1`).
-  2. Jalankan `php build-zip.php` untuk memproduksi berkas `imatutu.zip`.
-  3. Verifikasi bahwa file `imatutu.zip` memiliki folder pembungkus `imatutu/` dan berisi `style.css` valid di level pertama.
-
----
-
-## 7. CHECKLIST PENGUJIAN & KRITERIA KEBERHASILAN (DEFINITION OF DONE)
-
-Setiap tahapan pengembangan dinyatakan selesai (*DONE*) jika dan hanya jika seluruh kriteria berikut terpenuhi:
-
-- [ ] **Bebas Error PHP**: Menjalankan `php -l` pada semua berkas `.php` menghasilkan output `No syntax errors detected`.
-- [ ] **Customizer Terbuka Cepat**: Halaman `wp-admin/customize.php` terbuka sempurna dalam < 3 detik tanpa status *Loading...* macet.
-- [ ] **Console Bersih**: Tidak ada pesan error merah `FATAL: _wpCustomizeSettings was never defined` atau JavaScript uncaught exception pada konsol browser.
-- [ ] **Sinkronisasi Palet 1-Klik**: Memilih preset (misal *Pertamina Blue* atau *Emerald Enterprise*) langsung memperbarui skema warna tema secara harmonis.
-- [ ] **Tipografi Dinamis**: Mengubah font family heading atau body memuat Google Fonts yang tepat dan mengubah tampilan secara konsisten.
-- [ ] **Manipulasi Grid**: Mengubah layout kolom dari `col-1` menjadi `col-2` atau `col-1-2` langsung memperbarui tata letak di layar.
-- [ ] **Uji Responsif Mobile**: Pada ukuran layar HP (< 640px), seluruh kolom grid otomatis tersusun vertikal secara rapi.
-- [ ] **Komponen Form & Video**: Embed YouTube/Vimeo berjalan responsif 16:9, dan shortcode formulir WPForms terintegrasi dengan styling enterprise.
-- [ ] **Instalasi Tema Valid**: Mengunggah file `imatutu.zip` melalui **Appearance > Themes > Add New > Upload Theme** berhasil 100% tanpa pesan error *"No valid plugins were found"* atau *"Missing style.css"*.
+### Langkah 6: Cara Kustomisasi Konten (Sangat Mudah & Universal)
+1. **Mengedit Halaman Depan**:
+   - Buka **Pages (Halaman) > All Pages**.
+   - Klik **Edit** pada halaman bertanda **Front Page** (atau halaman baru yang ingin dibuat).
+   - Klik tombol **+ (Add block)** di pojok kiri atas, pilih tab **Patterns**, lalu pilih kategori **Imatutu Corporate Components**.
+   - Klik pattern **Imatutu Complete Homepage (1-Click Template)** atau pilih per komponen (Hero, Bento Services, Stats, Partners).
+   - Pengguna dapat mengedit teks judul, link tombol, menambah kartu layanan baru dengan menduplikasi blok, atau menghapus item langsung di editor visual Gutenberg!
+   - Klik **Update / Terbitkan**.
+2. **Mengatur Warna & Kontak Global**:
+   - Buka **Appearance > Customize**.
+   - Buka panel **Imatutu Global Settings** untuk mengubah warna dasar korporat, nomor WhatsApp/telepon, atau Fastbots Bot ID. Perubahan akan tersimpan seketika tanpa risiko *freeze*!

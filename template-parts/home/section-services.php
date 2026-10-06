@@ -49,7 +49,7 @@ $services = array(
         <!-- Services Grid -->
         <div class="services-grid">
             <?php foreach ($services as $index => $item) : ?>
-                <div class="service-card">
+                <div class="service-card service-card-<?php echo esc_attr($index); ?>">
                     <div class="service-card-inner">
                         <?php if (!empty($item['image'])) : ?>
                             <div class="service-card-media">
@@ -63,8 +63,8 @@ $services = array(
                             </div>
                             
                             <span class="service-tag"><?php echo esc_html($item['tag']); ?></span>
-                            <h3 class="service-title"><?php echo esc_html($item['title']); ?></h3>
-                            <p class="service-description"><?php echo esc_html($item['desc']); ?></p>
+                            <h3 class="service-title service-title-<?php echo esc_attr($index); ?>"><?php echo esc_html($item['title']); ?></h3>
+                            <p class="service-description service-desc-<?php echo esc_attr($index); ?>"><?php echo esc_html($item['desc']); ?></p>
 
                             <div class="service-footer">
                                 <a href="<?php echo esc_url(get_theme_mod('header_cta_link', 'https://imatutu.com/contact-us/')); ?>" class="service-link">
