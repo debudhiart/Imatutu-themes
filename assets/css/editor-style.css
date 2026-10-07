@@ -26,6 +26,21 @@
 
 .editor-styles-wrapper .services-grid,
 .editor-styles-wrapper .stats-counters-grid,
-.editor-styles-wrapper .clients-grid {
+.editor-styles-wrapper .clients-grid,
+.editor-styles-wrapper .bento-asymmetric-grid,
+.editor-styles-wrapper .bento-grid-6,
+.editor-styles-wrapper .timeline-grid,
+.editor-styles-wrapper .testimonials-bento-grid,
+.editor-styles-wrapper .careers-list-grid {
     box-sizing: border-box;
 }
+
+.editor-styles-wrapper .hero-split-grid,
+.editor-styles-wrapper .cta-glow-box,
+.editor-styles-wrapper .bento-card,
+.editor-styles-wrapper .career-card,
+.editor-styles-wrapper .timeline-step,
+.editor-styles-wrapper .testimonial-card {
+    box-sizing: border-box;
+}
+
