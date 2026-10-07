@@ -4,14 +4,14 @@
  * Architecture: Hybrid Theme with Native Gutenberg Block Patterns
  *
  * @package Imatutu
- * @version 2.2.0
+ * @version 2.3.0
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-define('IMATUTU_VERSION', '2.2.0');
+define('IMATUTU_VERSION', '2.3.0');
 define('IMATUTU_DIR', get_template_directory());
 define('IMATUTU_URI', get_template_directory_uri());
 
@@ -105,19 +105,13 @@ function imatutu_scripts() {
         IMATUTU_VERSION
     );
 
-    // Dynamic Color Customizer CSS
-    $primary_color   = get_theme_mod('primary_color', '#1559ED');
-    $secondary_color = get_theme_mod('secondary_color', '#0B192C');
-    $accent_color    = get_theme_mod('accent_color', '#E21F23');
-
-    $custom_css = "
-        :root {
-            --color-primary: {$primary_color};
-            --color-secondary: {$secondary_color};
-            --color-accent: {$accent_color};
-        }
-    ";
-    wp_add_inline_style('imatutu-main', $custom_css);
+    // Dynamic Color & Typography Customizer CSS
+    $color_css = function_exists('imatutu_get_color_css') ? imatutu_get_color_css() : '';
+    $typo_css  = function_exists('imatutu_get_typography_css') ? imatutu_get_typography_css() : '';
+    $custom_css = $color_css . $typo_css;
+    if (!empty($custom_css)) {
+        wp_add_inline_style('imatutu-main', $custom_css);
+    }
 
     // Main JavaScript
     wp_enqueue_script(
@@ -192,10 +186,19 @@ if (!function_exists('imatutu_default_footer_menu')) {
  * Registrasi Kategori Block Pattern Tema
  */
 function imatutu_register_pattern_categories() {
-    register_block_pattern_category(
-        'imatutu',
-        array('label' => esc_html__('Imatutu Corporate Components', 'imatutu'))
+    $categories = array(
+        'imatutu'              => array('label' => esc_html__('Imatutu Corporate Components', 'imatutu')),
+        'imatutu-hero'         => array('label' => esc_html__('Imatutu: Hero & Headers', 'imatutu')),
+        'imatutu-features'     => array('label' => esc_html__('Imatutu: Bento Grids & Features', 'imatutu')),
+        'imatutu-social-proof' => array('label' => esc_html__('Imatutu: Social Proof & Clients', 'imatutu')),
+        'imatutu-content'      => array('label' => esc_html__('Imatutu: Content, FAQ & Careers', 'imatutu')),
+        'imatutu-cta'          => array('label' => esc_html__('Imatutu: CTA Banners', 'imatutu')),
+        'imatutu-pages'        => array('label' => esc_html__('Imatutu: 1-Click Page Templates', 'imatutu')),
     );
+
+    foreach ($categories as $slug => $args) {
+        register_block_pattern_category($slug, $args);
+    }
 }
 add_action('init', 'imatutu_register_pattern_categories');
 

@@ -1,121 +1,74 @@
 <?php
 /**
- * Theme Color Palettes & Preset Definitions
+ * Color Presets & Dynamic CSS Engine
  *
  * @package Imatutu
+ * @version 2.3.0
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Returns available pre-defined color palettes
- */
 if (!function_exists('imatutu_get_color_palettes')) {
     function imatutu_get_color_palettes() {
         return array(
             'pertamina_blue' => array(
-                'name'   => esc_html__('Pertamina Blue (Corporate)', 'imatutu'),
-                'colors' => array('#1559ED', '#0B192C', '#E21F23', '#F8FAFC'),
-                'values' => array(
-                    'primary'    => '#1559ED',
-                    'primary_h'  => '#0D45C2',
-                    'primary_l'  => '#EBF2FE',
-                    'secondary'  => '#0B192C',
-                    'accent'     => '#E21F23',
-                    'bg_main'    => '#FFFFFF',
-                    'bg_surface' => '#F8FAFC',
-                    'text_main'  => '#1E293B',
-                    'text_muted' => '#64748B',
-                    'border'     => '#E2E8F0',
-                ),
+                'name'      => esc_html__('Pertamina Blue (Default Corporate)', 'imatutu'),
+                'primary'   => '#1559ED',
+                'secondary' => '#0B192C',
+                'accent'    => '#E21F23',
+                'surface'   => '#F8FAFC',
+                'text'      => '#1E293B',
             ),
             'executive_navy' => array(
-                'name'   => esc_html__('Executive Midnight Navy', 'imatutu'),
-                'colors' => array('#2563EB', '#030712', '#F59E0B', '#1E293B'),
-                'values' => array(
-                    'primary'    => '#2563EB',
-                    'primary_h'  => '#1D4ED8',
-                    'primary_l'  => '#EFF6FF',
-                    'secondary'  => '#030712',
-                    'accent'     => '#F59E0B',
-                    'bg_main'    => '#FFFFFF',
-                    'bg_surface' => '#F1F5F9',
-                    'text_main'  => '#0F172A',
-                    'text_muted' => '#64748B',
-                    'border'     => '#CBD5E1',
-                ),
+                'name'      => esc_html__('Executive Midnight Navy', 'imatutu'),
+                'primary'   => '#2563EB',
+                'secondary' => '#030712',
+                'accent'    => '#F59E0B',
+                'surface'   => '#F1F5F9',
+                'text'      => '#0F172A',
             ),
-            'emerald_enterprise' => array(
-                'name'   => esc_html__('Emerald Eco Enterprise', 'imatutu'),
-                'colors' => array('#059669', '#064E3B', '#10B981', '#F0FDF4'),
-                'values' => array(
-                    'primary'    => '#059669',
-                    'primary_h'  => '#047857',
-                    'primary_l'  => '#ECFDF5',
-                    'secondary'  => '#064E3B',
-                    'accent'     => '#10B981',
-                    'bg_main'    => '#FFFFFF',
-                    'bg_surface' => '#F0FDF4',
-                    'text_main'  => '#0F172A',
-                    'text_muted' => '#475569',
-                    'border'     => '#DCFCE7',
-                ),
+            'emerald_eco' => array(
+                'name'      => esc_html__('Emerald Eco Enterprise', 'imatutu'),
+                'primary'   => '#059669',
+                'secondary' => '#064E3B',
+                'accent'    => '#10B981',
+                'surface'   => '#F0FDF4',
+                'text'      => '#0F172A',
             ),
             'minimal_slate' => array(
-                'name'   => esc_html__('Modern Minimalist Slate', 'imatutu'),
-                'colors' => array('#0F172A', '#334155', '#64748B', '#F8FAFC'),
-                'values' => array(
-                    'primary'    => '#0F172A',
-                    'primary_h'  => '#1E293B',
-                    'primary_l'  => '#F1F5F9',
-                    'secondary'  => '#334155',
-                    'accent'     => '#64748B',
-                    'bg_main'    => '#FFFFFF',
-                    'bg_surface' => '#F8FAFC',
-                    'text_main'  => '#1E293B',
-                    'text_muted' => '#64748B',
-                    'border'     => '#E2E8F0',
-                ),
+                'name'      => esc_html__('Minimalist Modern Slate', 'imatutu'),
+                'primary'   => '#0F172A',
+                'secondary' => '#334155',
+                'accent'    => '#64748B',
+                'surface'   => '#F8FAFC',
+                'text'      => '#1E293B',
             ),
         );
     }
 }
 
-/**
- * Output dynamic CSS variables for theme colors
- */
 if (!function_exists('imatutu_get_color_css')) {
     function imatutu_get_color_css() {
-    $preset_id = get_theme_mod('color_preset_active', 'pertamina_blue');
-    $palettes  = imatutu_get_color_palettes();
-    $defaults  = isset($palettes[$preset_id]) ? $palettes[$preset_id]['values'] : $palettes['pertamina_blue']['values'];
+        $preset_key = get_theme_mod('color_preset', 'pertamina_blue');
+        $palettes   = imatutu_get_color_palettes();
+        $defaults   = isset($palettes[$preset_key]) ? $palettes[$preset_key] : $palettes['pertamina_blue'];
 
-    $primary    = get_theme_mod('primary_color', $defaults['primary']);
-    $primary_h  = get_theme_mod('color_primary_hover', $defaults['primary_h']);
-    $primary_l  = isset($defaults['primary_l']) ? $defaults['primary_l'] : '#EBF2FE';
-    $secondary  = get_theme_mod('secondary_color', $defaults['secondary']);
-    $accent     = get_theme_mod('accent_color', $defaults['accent']);
-    $bg_main    = get_theme_mod('color_bg_main', $defaults['bg_main']);
-    $bg_surface = get_theme_mod('color_bg_surface', $defaults['bg_surface']);
-    $text_main  = get_theme_mod('color_text_main', $defaults['text_main']);
-    $text_muted = get_theme_mod('color_text_muted', $defaults['text_muted']);
-    $border     = get_theme_mod('color_border', $defaults['border']);
+        $primary    = get_theme_mod('primary_color', $defaults['primary']);
+        $secondary  = get_theme_mod('secondary_color', $defaults['secondary']);
+        $accent     = get_theme_mod('accent_color', $defaults['accent']);
+        $surface    = get_theme_mod('surface_color', $defaults['surface']);
+        $text       = get_theme_mod('text_color', $defaults['text']);
 
-    return "
-        :root {
-            --color-primary: " . esc_attr($primary) . ";
-            --color-primary-dark: " . esc_attr($primary_h) . ";
-            --color-primary-light: " . esc_attr($primary_l) . ";
-            --color-secondary: " . esc_attr($secondary) . ";
-            --color-accent: " . esc_attr($accent) . ";
-            --color-bg: " . esc_attr($bg_main) . ";
-            --color-bg-secondary: " . esc_attr($bg_surface) . ";
-            --color-text: " . esc_attr($text_main) . ";
-            --color-text-muted: " . esc_attr($text_muted) . ";
-            --color-border: " . esc_attr($border) . ";
-        }
-    ";
+        return "
+            :root {
+                --color-primary: {$primary};
+                --color-secondary: {$secondary};
+                --color-accent: {$accent};
+                --color-bg-surface: {$surface};
+                --color-text: {$text};
+            }
+        ";
     }
 }
