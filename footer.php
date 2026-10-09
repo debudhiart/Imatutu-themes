@@ -111,8 +111,8 @@ $fastbots_bot_id  = get_theme_mod('imatutu_chatbot_id', get_theme_mod('fastbots_
     </footer>
 </div><!-- #page -->
 
-<!-- Fastbots AI Chatbot Integration -->
-<?php if (!empty($fastbots_bot_id) && !wp_script_is('fastbots-chatbot', 'enqueued') && !wp_script_is('fastbots-chatbot', 'done')) : ?>
+<!-- Fastbots AI Chatbot Integration (Disabled in Customizer Preview) -->
+<?php if (!is_customize_preview() && !empty($fastbots_bot_id) && !wp_script_is('fastbots-chatbot', 'enqueued') && !wp_script_is('fastbots-chatbot', 'done')) : ?>
     <script id="fastbots-chatbot-js" defer data-bot-id="<?php echo esc_attr($fastbots_bot_id); ?>" src="https://app.fastbots.ai/embed.js"></script>
 <?php endif; ?>
 

@@ -54,32 +54,42 @@ function imatutu_setup() {
     add_theme_support('editor-styles');
     add_editor_style(array('assets/css/main.css', 'assets/css/editor-style.css'));
 
-    // Palet Warna Default untuk Block Editor
+    // Palet Warna Dinamis untuk Block Editor & Gutenberg
+    $current_preset = get_theme_mod('color_preset', 'pertamina_blue');
+    $palettes       = function_exists('imatutu_get_color_palettes') ? imatutu_get_color_palettes() : array();
+    $defaults       = isset($palettes[$current_preset]) ? $palettes[$current_preset] : array('primary' => '#1559ED', 'secondary' => '#0B192C', 'accent' => '#E21F23', 'surface' => '#FFFFFF', 'text' => '#1E293B');
+
+    $pri = get_theme_mod('primary_color', $defaults['primary']);
+    $sec = get_theme_mod('secondary_color', $defaults['secondary']);
+    $acc = get_theme_mod('accent_color', $defaults['accent']);
+    $txt = get_theme_mod('text_color', isset($defaults['text']) ? $defaults['text'] : '#1E293B');
+    $srf = get_theme_mod('surface_color', isset($defaults['surface']) ? $defaults['surface'] : '#FFFFFF');
+
     add_theme_support('editor-color-palette', array(
         array(
-            'name'  => esc_html__('Corporate Blue', 'imatutu'),
+            'name'  => esc_html__('Primary Brand', 'imatutu'),
             'slug'  => 'primary',
-            'color' => '#1559ED',
+            'color' => $pri,
         ),
         array(
-            'name'  => esc_html__('Deep Navy', 'imatutu'),
+            'name'  => esc_html__('Secondary Brand', 'imatutu'),
             'slug'  => 'secondary',
-            'color' => '#0B192C',
+            'color' => $sec,
         ),
         array(
-            'name'  => esc_html__('Corporate Red', 'imatutu'),
+            'name'  => esc_html__('Accent Color', 'imatutu'),
             'slug'  => 'accent',
-            'color' => '#E21F23',
+            'color' => $acc,
         ),
         array(
-            'name'  => esc_html__('Slate Body', 'imatutu'),
+            'name'  => esc_html__('Body Text', 'imatutu'),
             'slug'  => 'text',
-            'color' => '#1E293B',
+            'color' => $txt,
         ),
         array(
-            'name'  => esc_html__('Light Slate', 'imatutu'),
+            'name'  => esc_html__('Surface / Background', 'imatutu'),
             'slug'  => 'surface',
-            'color' => '#F8FAFC',
+            'color' => $srf,
         ),
     ));
 }
@@ -89,14 +99,6 @@ add_action('after_setup_theme', 'imatutu_setup');
  * Enqueue Frontend Scripts & Styles
  */
 function imatutu_scripts() {
-    // Google Fonts: Plus Jakarta Sans
-    wp_enqueue_style(
-        'imatutu-fonts',
-        'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap',
-        array(),
-        null
-    );
-
     // Main Stylesheet
     wp_enqueue_style(
         'imatutu-main',
@@ -122,20 +124,50 @@ function imatutu_scripts() {
         true
     );
 
-    // Fastbots AI Chatbot Integration
-    $fastbots_id = get_theme_mod('imatutu_chatbot_id', get_theme_mod('fastbots_bot_id', 'cm8gjb24m11rmrik59ko46vdi'));
-    if (!empty($fastbots_id)) {
-        wp_enqueue_script(
-            'fastbots-chatbot',
-            'https://app.fastbots.ai/embed.js',
-            array(),
-            null,
-            array('strategy' => 'defer', 'in_footer' => true)
-        );
-        wp_script_add_data('fastbots-chatbot', 'data-bot-id', esc_attr($fastbots_id));
+    // Fastbots AI Chatbot Integration (Disabled inside Customizer preview to prevent iframe blocking)
+    if (!is_customize_preview()) {
+        $fastbots_id = get_theme_mod('imatutu_chatbot_id', get_theme_mod('fastbots_bot_id', 'cm8gjb24m11rmrik59ko46vdi'));
+        if (!empty($fastbots_id)) {
+            wp_enqueue_script(
+                'fastbots-chatbot',
+                'https://app.fastbots.ai/embed.js',
+                array(),
+                null,
+                array('strategy' => 'defer', 'in_footer' => true)
+            );
+            wp_script_add_data('fastbots-chatbot', 'data-bot-id', esc_attr($fastbots_id));
+        }
     }
 }
 add_action('wp_enqueue_scripts', 'imatutu_scripts');
+
+/**
+ * Enqueue Dynamic Color & Typography Styles into Gutenberg Block Editor
+ * Ensures Patterns, Gutenberg blocks, and WPForms previews reflect global settings in real-time
+ */
+function imatutu_block_editor_assets() {
+    $color_css = function_exists('imatutu_get_color_css') ? imatutu_get_color_css() : '';
+    $typo_css  = function_exists('imatutu_get_typography_css') ? imatutu_get_typography_css() : '';
+    $custom_css = $color_css . $typo_css;
+
+    if (!empty($custom_css)) {
+        wp_register_style('imatutu-editor-dynamic', false);
+        wp_enqueue_style('imatutu-editor-dynamic');
+        wp_add_inline_style('imatutu-editor-dynamic', $custom_css);
+    }
+}
+add_action('enqueue_block_editor_assets', 'imatutu_block_editor_assets', 10);
+
+
+/**
+ * Remove X-Frame-Options in Customizer preview to avoid iframe blocks on strict hosting servers (Plesk/Nginx)
+ */
+function imatutu_customize_frame_options() {
+    if (is_customize_preview()) {
+        header_remove('X-Frame-Options');
+    }
+}
+add_action('send_headers', 'imatutu_customize_frame_options');
 
 /**
  * Fallback menu when no WordPress menu is assigned yet
@@ -206,3 +238,10 @@ add_action('init', 'imatutu_register_pattern_categories');
  * Memuat Modul Customizer Ramping (Hanya Pengaturan Global)
  */
 require_once IMATUTU_DIR . '/inc/customizer.php';
+
+/**
+ * Memuat Panel Pengaturan Independen di Dashboard WordPress (wp-admin)
+ * Solusi 100% stabil & hemat memori tanpa ketergantungan iframe Customizer
+ */
+require_once IMATUTU_DIR . '/inc/admin-settings.php';
+

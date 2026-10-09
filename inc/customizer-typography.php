@@ -59,17 +59,122 @@ if (!function_exists('imatutu_get_typography_css')) {
         $heading_stack = ($heading_font === 'System') ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : "'{$heading_font}', sans-serif";
 
         return "
-            :root {
+            :root,
+            .editor-styles-wrapper {
                 --font-main: {$body_stack};
                 --font-heading: {$heading_stack};
                 --body-size: {$base_size}px;
             }
-            body {
+            body,
+            .editor-styles-wrapper {
                 font-family: var(--font-main);
                 font-size: var(--body-size);
             }
-            h1, h2, h3, h4, h5, h6, .brand-text, .section-title, .hero-title, .bento-card-title {
+            h1, h2, h3, h4, h5, h6,
+            .brand-text,
+            .section-title,
+            .hero-title,
+            .bento-card-title,
+            .editor-styles-wrapper h1,
+            .editor-styles-wrapper h2,
+            .editor-styles-wrapper h3 {
                 font-family: var(--font-heading);
+            }
+
+            /* ==============================================================
+             * WPForms & Third-Party Forms Typography & Styling Harmonization
+             * Safely integrates global fonts and colors without breaking layouts
+             * ============================================================== */
+            div.wpforms-container-full,
+            div.wpforms-container,
+            .wpforms-form {
+                font-family: var(--font-main);
+            }
+
+            .wpforms-title {
+                font-family: var(--font-heading) !important;
+                color: var(--color-secondary, #0B192C) !important;
+                font-weight: 700;
+            }
+
+            .wpforms-description {
+                font-family: var(--font-main);
+                font-size: calc(var(--body-size, 16px) * 0.9375);
+                color: var(--color-text-muted, #64748B);
+            }
+
+            .wpforms-form .wpforms-field-label {
+                font-family: var(--font-main) !important;
+                font-size: calc(var(--body-size, 16px) * 0.9375);
+                font-weight: 600;
+                color: var(--color-secondary, #0B192C);
+                margin-bottom: 6px;
+            }
+
+            .wpforms-form .wpforms-field-sublabel,
+            .wpforms-form .wpforms-field-description {
+                font-family: var(--font-main);
+                font-size: calc(var(--body-size, 16px) * 0.8125);
+                color: var(--color-text-muted, #64748B);
+            }
+
+            .wpforms-form input[type=text],
+            .wpforms-form input[type=email],
+            .wpforms-form input[type=tel],
+            .wpforms-form input[type=url],
+            .wpforms-form input[type=password],
+            .wpforms-form input[type=number],
+            .wpforms-form textarea,
+            .wpforms-form select {
+                font-family: var(--font-main) !important;
+                font-size: var(--body-size, 16px) !important;
+                line-height: 1.5;
+                color: var(--color-text, #1E293B);
+                border: 1px solid var(--color-border, #E2E8F0);
+                border-radius: var(--radius-sm, 8px);
+                transition: var(--transition, all 0.25s ease);
+            }
+
+            .wpforms-form input:focus,
+            .wpforms-form textarea:focus,
+            .wpforms-form select:focus {
+                border-color: var(--color-primary) !important;
+                outline: none;
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent) !important;
+            }
+
+            div.wpforms-container-full .wpforms-form button[type=submit],
+            .wpforms-container .wpforms-submit {
+                font-family: var(--font-main) !important;
+                font-size: var(--body-size, 16px) !important;
+                font-weight: 700 !important;
+                background-color: var(--color-primary) !important;
+                color: #FFFFFF !important;
+                border: 1px solid transparent !important;
+                border-radius: var(--radius-full, 9999px) !important;
+                padding: 0.75rem 2rem !important;
+                cursor: pointer;
+                transition: var(--transition, all 0.25s ease);
+                box-shadow: var(--shadow-primary);
+            }
+
+            div.wpforms-container-full .wpforms-form button[type=submit]:hover,
+            .wpforms-container .wpforms-submit:hover {
+                background-color: var(--color-primary-dark) !important;
+                color: #FFFFFF !important;
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px -3px color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
+            }
+
+            /* Preserve WPForms internal structure & error indicators */
+            .wpforms-form .wpforms-field-label-inline {
+                font-family: var(--font-main);
+                font-weight: 400;
+                font-size: calc(var(--body-size, 16px) * 0.9375);
+            }
+            label.wpforms-error {
+                font-size: calc(var(--body-size, 16px) * 0.8125) !important;
+                color: #DC2626 !important;
             }
         ";
     }

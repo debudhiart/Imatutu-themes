@@ -21,7 +21,7 @@ function imatutu_customize_register($wp_customize) {
     $wp_customize->add_panel('panel_imatutu_global', array(
         'title'       => esc_html__('Imatutu Global Settings', 'imatutu'),
         'description' => esc_html__('Configure corporate identity, typography, brand colors, header contacts, and AI chatbot. Page contents are managed visually in WordPress Block Editor (Pages > Edit).', 'imatutu'),
-        'priority'    => 20,
+        'priority'    => 25,
     ));
 
     // =============================================================
@@ -38,7 +38,7 @@ function imatutu_customize_register($wp_customize) {
     $wp_customize->add_setting('typo_body_font', array(
         'default'           => 'Plus Jakarta Sans',
         'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
+        'transport'         => 'postMessage',
     ));
     $wp_customize->add_control('typo_body_font', array(
         'label'    => esc_html__('Body Font Family', 'imatutu'),
@@ -50,7 +50,7 @@ function imatutu_customize_register($wp_customize) {
     $wp_customize->add_setting('typo_heading_font', array(
         'default'           => 'Plus Jakarta Sans',
         'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
+        'transport'         => 'postMessage',
     ));
     $wp_customize->add_control('typo_heading_font', array(
         'label'    => esc_html__('Headings Font Family', 'imatutu'),
@@ -62,7 +62,7 @@ function imatutu_customize_register($wp_customize) {
     $wp_customize->add_setting('typo_base_size', array(
         'default'           => '16',
         'sanitize_callback' => 'absint',
-        'transport'         => 'refresh',
+        'transport'         => 'postMessage',
     ));
     $wp_customize->add_control('typo_base_size', array(
         'label'       => esc_html__('Base Font Size (px)', 'imatutu'),
@@ -90,7 +90,7 @@ function imatutu_customize_register($wp_customize) {
     $wp_customize->add_setting('color_preset', array(
         'default'           => 'pertamina_blue',
         'sanitize_callback' => 'sanitize_key',
-        'transport'         => 'refresh',
+        'transport'         => 'postMessage',
     ));
     $wp_customize->add_control('color_preset', array(
         'label'    => esc_html__('1-Click Color Preset', 'imatutu'),
@@ -99,35 +99,32 @@ function imatutu_customize_register($wp_customize) {
         'choices'  => $preset_choices,
     ));
 
-    $wp_customize->add_setting('primary_color', array(
-        'default'           => '#1559ED',
-        'sanitize_callback' => 'sanitize_hex_color',
-        'transport'         => 'postMessage',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'primary_color', array(
-        'label'    => esc_html__('Primary Corporate Blue', 'imatutu'),
-        'section'  => 'sec_imatutu_colors',
-    )));
+    $color_controls = array(
+        'primary_color'   => array('label' => esc_html__('Primary Corporate Blue', 'imatutu'), 'default' => '#1559ED'),
+        'secondary_color' => array('label' => esc_html__('Secondary Navy Color', 'imatutu'), 'default' => '#0B192C'),
+        'accent_color'    => array('label' => esc_html__('Accent Red Color', 'imatutu'), 'default' => '#E21F23'),
+    );
 
-    $wp_customize->add_setting('secondary_color', array(
-        'default'           => '#0B192C',
-        'sanitize_callback' => 'sanitize_hex_color',
-        'transport'         => 'postMessage',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'secondary_color', array(
-        'label'    => esc_html__('Secondary Navy Color', 'imatutu'),
-        'section'  => 'sec_imatutu_colors',
-    )));
-
-    $wp_customize->add_setting('accent_color', array(
-        'default'           => '#E21F23',
-        'sanitize_callback' => 'sanitize_hex_color',
-        'transport'         => 'postMessage',
-    ));
-    $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'accent_color', array(
-        'label'    => esc_html__('Accent Red Color', 'imatutu'),
-        'section'  => 'sec_imatutu_colors',
-    )));
+    foreach ($color_controls as $color_id => $data) {
+        $wp_customize->add_setting($color_id, array(
+            'default'           => $data['default'],
+            'sanitize_callback' => 'sanitize_hex_color',
+            'transport'         => 'postMessage',
+        ));
+        if (class_exists('WP_Customize_Color_Control')) {
+            $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, $color_id, array(
+                'label'    => $data['label'],
+                'section'  => 'sec_imatutu_colors',
+                'settings' => $color_id,
+            )));
+        } else {
+            $wp_customize->add_control($color_id, array(
+                'label'    => $data['label'],
+                'section'  => 'sec_imatutu_colors',
+                'type'     => 'color',
+            ));
+        }
+    }
 
     // =============================================================
     // SECTION 3: Brand Identity & Topbar Contacts
@@ -174,7 +171,7 @@ function imatutu_customize_register($wp_customize) {
     $wp_customize->add_setting('imatutu_whatsapp_number', array(
         'default'           => '6285168932460',
         'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
+        'transport'         => 'postMessage',
     ));
     $wp_customize->add_control('imatutu_whatsapp_number', array(
         'label'       => esc_html__('WhatsApp Number (Direct Link)', 'imatutu'),
@@ -195,7 +192,7 @@ function imatutu_customize_register($wp_customize) {
     $wp_customize->add_setting('imatutu_enable_floating_wa', array(
         'default'           => true,
         'sanitize_callback' => 'wp_validate_boolean',
-        'transport'         => 'refresh',
+        'transport'         => 'postMessage',
     ));
     $wp_customize->add_control('imatutu_enable_floating_wa', array(
         'label'   => esc_html__('Enable Floating WhatsApp Button', 'imatutu'),
@@ -269,3 +266,45 @@ function imatutu_customize_register($wp_customize) {
     ));
 }
 add_action('customize_register', 'imatutu_customize_register');
+
+/**
+ * Enqueue scripts for real-time live preview in Customizer
+ */
+function imatutu_customizer_preview_scripts() {
+    $script_path = get_template_directory() . '/assets/js/customizer-preview.js';
+    $version     = file_exists($script_path) ? filemtime($script_path) : IMATUTU_VERSION;
+
+    wp_enqueue_script(
+        'imatutu-customizer-preview',
+        get_template_directory_uri() . '/assets/js/customizer-preview.js',
+        array('customize-preview', 'jquery'),
+        $version,
+        true
+    );
+
+    if (function_exists('imatutu_get_color_palettes')) {
+        wp_localize_script('imatutu-customizer-preview', 'imatutuPalettes', imatutu_get_color_palettes());
+    }
+}
+add_action('customize_preview_init', 'imatutu_customizer_preview_scripts');
+
+/**
+ * Enqueue scripts and dependencies for Customizer controls pane
+ */
+function imatutu_customizer_controls_scripts() {
+    $script_path = get_template_directory() . '/assets/js/customizer-controls.js';
+    $version     = file_exists($script_path) ? filemtime($script_path) : IMATUTU_VERSION;
+
+    wp_enqueue_script(
+        'imatutu-customizer-controls',
+        get_template_directory_uri() . '/assets/js/customizer-controls.js',
+        array('customize-controls', 'jquery'),
+        $version,
+        true
+    );
+
+    if (function_exists('imatutu_get_color_palettes')) {
+        wp_localize_script('imatutu-customizer-controls', 'imatutuPalettes', imatutu_get_color_palettes());
+    }
+}
+add_action('customize_controls_enqueue_scripts', 'imatutu_customizer_controls_scripts');
