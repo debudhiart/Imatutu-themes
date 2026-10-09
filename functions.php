@@ -54,32 +54,42 @@ function imatutu_setup() {
     add_theme_support('editor-styles');
     add_editor_style(array('assets/css/main.css', 'assets/css/editor-style.css'));
 
-    // Palet Warna Default untuk Block Editor
+    // Palet Warna Dinamis untuk Block Editor & Gutenberg
+    $current_preset = get_theme_mod('color_preset', 'pertamina_blue');
+    $palettes       = function_exists('imatutu_get_color_palettes') ? imatutu_get_color_palettes() : array();
+    $defaults       = isset($palettes[$current_preset]) ? $palettes[$current_preset] : array('primary' => '#1559ED', 'secondary' => '#0B192C', 'accent' => '#E21F23', 'surface' => '#FFFFFF', 'text' => '#1E293B');
+
+    $pri = get_theme_mod('primary_color', $defaults['primary']);
+    $sec = get_theme_mod('secondary_color', $defaults['secondary']);
+    $acc = get_theme_mod('accent_color', $defaults['accent']);
+    $txt = get_theme_mod('text_color', isset($defaults['text']) ? $defaults['text'] : '#1E293B');
+    $srf = get_theme_mod('surface_color', isset($defaults['surface']) ? $defaults['surface'] : '#FFFFFF');
+
     add_theme_support('editor-color-palette', array(
         array(
-            'name'  => esc_html__('Corporate Blue', 'imatutu'),
+            'name'  => esc_html__('Primary Brand', 'imatutu'),
             'slug'  => 'primary',
-            'color' => '#1559ED',
+            'color' => $pri,
         ),
         array(
-            'name'  => esc_html__('Deep Navy', 'imatutu'),
+            'name'  => esc_html__('Secondary Brand', 'imatutu'),
             'slug'  => 'secondary',
-            'color' => '#0B192C',
+            'color' => $sec,
         ),
         array(
-            'name'  => esc_html__('Corporate Red', 'imatutu'),
+            'name'  => esc_html__('Accent Color', 'imatutu'),
             'slug'  => 'accent',
-            'color' => '#E21F23',
+            'color' => $acc,
         ),
         array(
-            'name'  => esc_html__('Slate Body', 'imatutu'),
+            'name'  => esc_html__('Body Text', 'imatutu'),
             'slug'  => 'text',
-            'color' => '#1E293B',
+            'color' => $txt,
         ),
         array(
-            'name'  => esc_html__('Light Slate', 'imatutu'),
+            'name'  => esc_html__('Surface / Background', 'imatutu'),
             'slug'  => 'surface',
-            'color' => '#F8FAFC',
+            'color' => $srf,
         ),
     ));
 }
@@ -130,6 +140,24 @@ function imatutu_scripts() {
     }
 }
 add_action('wp_enqueue_scripts', 'imatutu_scripts');
+
+/**
+ * Enqueue Dynamic Color & Typography Styles into Gutenberg Block Editor
+ * Ensures Patterns, Gutenberg blocks, and WPForms previews reflect global settings in real-time
+ */
+function imatutu_block_editor_assets() {
+    $color_css = function_exists('imatutu_get_color_css') ? imatutu_get_color_css() : '';
+    $typo_css  = function_exists('imatutu_get_typography_css') ? imatutu_get_typography_css() : '';
+    $custom_css = $color_css . $typo_css;
+
+    if (!empty($custom_css)) {
+        wp_register_style('imatutu-editor-dynamic', false);
+        wp_enqueue_style('imatutu-editor-dynamic');
+        wp_add_inline_style('imatutu-editor-dynamic', $custom_css);
+    }
+}
+add_action('enqueue_block_editor_assets', 'imatutu_block_editor_assets', 10);
+
 
 /**
  * Remove X-Frame-Options in Customizer preview to avoid iframe blocks on strict hosting servers (Plesk/Nginx)

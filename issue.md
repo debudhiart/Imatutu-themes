@@ -1754,5 +1754,35 @@ Sebelum pull request di-merge atau diserahkan, pastikan memenuhi checklist berik
 - [x] Komponen FAQ Accordion dapat dibuka-tutup tanpa error JavaScript.
 - [x] Template Full-Width Canvas merender komponen 21st.dev secara penuh tanpa padding sempit yang merusak layout.
 - [x] Tombol floating WhatsApp muncul dan berfungsi mengarahkan ke nomor yang dikonfigurasi.
-- [x] Ukuran file `imatutu-theme.zip` tetap berada di rentang optimal (~109 KB).
+- [x] Ukuran file `imatutu-theme.zip` tetap berada di rentang optimal (~112 KB).
+- [x] Sinkronisasi warna patterns di Gutenberg editor & frontend terhubung dinamis 100%.
+- [x] Integrasi tipografi & pewarnaan form pihak ketiga (WPForms) berjalan harmonis tanpa merusak icon atau layout form.
+
+---
+
+## 11. EVALUASI TEKNIS: SINKRONISASI WARNA PATTERNS & INTEGRASI PLUGINS (WPFORMS)
+
+### A. Mengapa Pengaturan Warna Sebelumnya Tidak Berdampak pada Patterns?
+1. **Hardcoded CSS Hex/RGBA pada Komponen Patterns**:
+   - Di file `assets/css/main.css`, komponen seperti `.hero-section`, `.bento-card-large`, `.bento-glass-card`, `.cta-glow-box`, dan `.bento-icon-wrap` menggunakan warna heksadesimal statis `#1559ED`, `#0B192C`, atau `#EBF2FE`. Akibatnya, saat `--color-primary` diubah, komponen tersebut tetap menampilkan warna default.
+2. **Ketiadaan Enqueue Dynamic Styles di Gutenberg Block Editor**:
+   - Fungsi `imatutu_get_color_css()` dan `imatutu_get_typography_css()` sebelumnya hanya di-enqueue pada `wp_enqueue_scripts` (Frontend). Ketika user membuka halaman editor atau panel *Patterns*, canvas editor tidak memiliki variabel CSS dinamis.
+3. **Ketiadaan Token Preset Gutenberg (`--wp--preset--color--*`)**:
+   - WordPress Block Editor mengandalkan CSS variable core untuk block palette. Tanpa pemetaan `--wp--preset--color--primary`, block standard tetap mempertahankan warna lama.
+4. **Solusi yang Diterapkan**:
+   - Mengganti seluruh nilai hardcoded di `main.css` dengan token `var(--color-...)` dan `color-mix()`.
+   - Menginjeksikan dynamic styles ke Gutenberg editor via hook `enqueue_block_editor_assets` (`imatutu_block_editor_assets`).
+   - Menyertakan token `--wp--preset--color--*` dan class utility `.has-primary-color` langsung di `imatutu_get_color_css()`.
+
+### B. Pengaruh Perubahan Tipografi & Desain terhadap Plugin Pihak Ketiga (WPForms)
+1. **Font Family**:
+   - Menghindari selektor universal `* { font-family: ... !important; }` agar tidak merusak font icon WPForms (seperti icon kalender, upload, dan rating).
+   - Menyelaraskan kontainer form (`.wpforms-container`, `.wpforms-form`, inputs, textarea, select) agar mewarisi `--font-main`, dan `.wpforms-title` mewarisi `--font-heading`.
+2. **Ukuran Huruf Dasar (`--body-size`)**:
+   - Input text diskalakan otomatis mengikuti `--body-size` dengan line-height `1.5` yang nyaman.
+   - Label form (`.wpforms-field-label`) dan deskripsi field (`.wpforms-field-description`) diskalakan secara proporsional (`0.9375` dan `0.8125`) sehingga hierarki visual formulir tetap seimbang.
+3. **Harmonisasi Warna Tombol & Input Focus**:
+   - Tombol submit WPForms (`button.wpforms-submit`) otomatis mengadopsi `--color-primary`, hover ke `--color-primary-dark`, dan bentuk pill modern.
+   - Efek focus pada input menampilkan border `--color-primary` dengan subtle halo glow.
+   - Indikator validasi dan error bawaan WPForms (`label.wpforms-error`) tetap terjaga warnanya (merah jelas) dan tidak tertimpa.
 

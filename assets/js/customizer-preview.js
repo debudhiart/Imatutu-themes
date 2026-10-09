@@ -42,19 +42,49 @@
         // =============================================================
         // 1. Color Palette & Dynamic CSS Variables
         // =============================================================
-        var colorMap = {
-            'primary_color': '--color-primary',
-            'secondary_color': '--color-secondary',
-            'accent_color': '--color-accent'
-        };
+        function hexToRgb(hex) {
+            hex = (hex || '').replace('#', '');
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
+            var num = parseInt(hex, 16);
+            if (isNaN(num)) return '21, 89, 237';
+            return (num >> 16) + ', ' + ((num >> 8) & 255) + ', ' + (num & 255);
+        }
 
-        $.each(colorMap, function(settingId, cssVar) {
-            api(settingId, function(value) {
-                value.bind(function(newval) {
-                    if (newval) {
-                        document.documentElement.style.setProperty(cssVar, newval);
-                    }
-                });
+        api('primary_color', function(value) {
+            value.bind(function(newval) {
+                if (newval) {
+                    var rgb = hexToRgb(newval);
+                    document.documentElement.style.setProperty('--color-primary', newval);
+                    document.documentElement.style.setProperty('--wp--preset--color--primary', newval);
+                    document.documentElement.style.setProperty('--color-primary-rgb', rgb);
+                    document.documentElement.style.setProperty('--color-primary-dark', 'color-mix(in srgb, ' + newval + ' 80%, #000000)');
+                    document.documentElement.style.setProperty('--color-primary-light', 'color-mix(in srgb, ' + newval + ' 12%, #FFFFFF)');
+                    document.documentElement.style.setProperty('--shadow-primary', '0 10px 25px -3px rgba(' + rgb + ', 0.35)');
+                }
+            });
+        });
+
+        api('secondary_color', function(value) {
+            value.bind(function(newval) {
+                if (newval) {
+                    var rgb = hexToRgb(newval);
+                    document.documentElement.style.setProperty('--color-secondary', newval);
+                    document.documentElement.style.setProperty('--wp--preset--color--secondary', newval);
+                    document.documentElement.style.setProperty('--color-secondary-rgb', rgb);
+                    document.documentElement.style.setProperty('--color-secondary-light', 'color-mix(in srgb, ' + newval + ' 85%, #FFFFFF)');
+                }
+            });
+        });
+
+        api('accent_color', function(value) {
+            value.bind(function(newval) {
+                if (newval) {
+                    document.documentElement.style.setProperty('--color-accent', newval);
+                    document.documentElement.style.setProperty('--wp--preset--color--accent', newval);
+                    document.documentElement.style.setProperty('--color-accent-rgb', hexToRgb(newval));
+                }
             });
         });
 
@@ -63,14 +93,36 @@
             value.bind(function(presetKey) {
                 if (typeof imatutuPalettes !== 'undefined' && imatutuPalettes[presetKey]) {
                     var pal = imatutuPalettes[presetKey];
-                    if (pal.primary) document.documentElement.style.setProperty('--color-primary', pal.primary);
-                    if (pal.secondary) document.documentElement.style.setProperty('--color-secondary', pal.secondary);
-                    if (pal.accent) document.documentElement.style.setProperty('--color-accent', pal.accent);
+                    if (pal.primary) {
+                        var priRgb = hexToRgb(pal.primary);
+                        document.documentElement.style.setProperty('--color-primary', pal.primary);
+                        document.documentElement.style.setProperty('--wp--preset--color--primary', pal.primary);
+                        document.documentElement.style.setProperty('--color-primary-rgb', priRgb);
+                        document.documentElement.style.setProperty('--color-primary-dark', 'color-mix(in srgb, ' + pal.primary + ' 80%, #000000)');
+                        document.documentElement.style.setProperty('--color-primary-light', 'color-mix(in srgb, ' + pal.primary + ' 12%, #FFFFFF)');
+                        document.documentElement.style.setProperty('--shadow-primary', '0 10px 25px -3px rgba(' + priRgb + ', 0.35)');
+                    }
+                    if (pal.secondary) {
+                        var secRgb = hexToRgb(pal.secondary);
+                        document.documentElement.style.setProperty('--color-secondary', pal.secondary);
+                        document.documentElement.style.setProperty('--wp--preset--color--secondary', pal.secondary);
+                        document.documentElement.style.setProperty('--color-secondary-rgb', secRgb);
+                        document.documentElement.style.setProperty('--color-secondary-light', 'color-mix(in srgb, ' + pal.secondary + ' 85%, #FFFFFF)');
+                    }
+                    if (pal.accent) {
+                        document.documentElement.style.setProperty('--color-accent', pal.accent);
+                        document.documentElement.style.setProperty('--wp--preset--color--accent', pal.accent);
+                        document.documentElement.style.setProperty('--color-accent-rgb', hexToRgb(pal.accent));
+                    }
                     if (pal.surface) {
                         document.documentElement.style.setProperty('--color-surface', pal.surface);
                         document.documentElement.style.setProperty('--color-bg-surface', pal.surface);
+                        document.documentElement.style.setProperty('--wp--preset--color--surface', pal.surface);
                     }
-                    if (pal.text) document.documentElement.style.setProperty('--color-text', pal.text);
+                    if (pal.text) {
+                        document.documentElement.style.setProperty('--color-text', pal.text);
+                        document.documentElement.style.setProperty('--wp--preset--color--text', pal.text);
+                    }
                 }
             });
         });
