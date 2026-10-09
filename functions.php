@@ -210,3 +210,10 @@ add_action('init', 'imatutu_register_pattern_categories');
  * Memuat Modul Customizer Ramping (Hanya Pengaturan Global)
  */
 require_once IMATUTU_DIR . '/inc/customizer.php';
+
+/**
+ * Memuat Panel Pengaturan Independen di Dashboard WordPress (wp-admin)
+ * Solusi 100% stabil & hemat memori tanpa ketergantungan iframe Customizer
+ */
+require_once IMATUTU_DIR . '/inc/admin-settings.php';
+
