@@ -89,14 +89,6 @@ add_action('after_setup_theme', 'imatutu_setup');
  * Enqueue Frontend Scripts & Styles
  */
 function imatutu_scripts() {
-    // Google Fonts: Plus Jakarta Sans
-    wp_enqueue_style(
-        'imatutu-fonts',
-        'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap',
-        array(),
-        null
-    );
-
     // Main Stylesheet
     wp_enqueue_style(
         'imatutu-main',
@@ -122,20 +114,32 @@ function imatutu_scripts() {
         true
     );
 
-    // Fastbots AI Chatbot Integration
-    $fastbots_id = get_theme_mod('imatutu_chatbot_id', get_theme_mod('fastbots_bot_id', 'cm8gjb24m11rmrik59ko46vdi'));
-    if (!empty($fastbots_id)) {
-        wp_enqueue_script(
-            'fastbots-chatbot',
-            'https://app.fastbots.ai/embed.js',
-            array(),
-            null,
-            array('strategy' => 'defer', 'in_footer' => true)
-        );
-        wp_script_add_data('fastbots-chatbot', 'data-bot-id', esc_attr($fastbots_id));
+    // Fastbots AI Chatbot Integration (Disabled inside Customizer preview to prevent iframe blocking)
+    if (!is_customize_preview()) {
+        $fastbots_id = get_theme_mod('imatutu_chatbot_id', get_theme_mod('fastbots_bot_id', 'cm8gjb24m11rmrik59ko46vdi'));
+        if (!empty($fastbots_id)) {
+            wp_enqueue_script(
+                'fastbots-chatbot',
+                'https://app.fastbots.ai/embed.js',
+                array(),
+                null,
+                array('strategy' => 'defer', 'in_footer' => true)
+            );
+            wp_script_add_data('fastbots-chatbot', 'data-bot-id', esc_attr($fastbots_id));
+        }
     }
 }
 add_action('wp_enqueue_scripts', 'imatutu_scripts');
+
+/**
+ * Remove X-Frame-Options in Customizer preview to avoid iframe blocks on strict hosting servers (Plesk/Nginx)
+ */
+function imatutu_customize_frame_options() {
+    if (is_customize_preview()) {
+        header_remove('X-Frame-Options');
+    }
+}
+add_action('send_headers', 'imatutu_customize_frame_options');
 
 /**
  * Fallback menu when no WordPress menu is assigned yet

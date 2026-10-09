@@ -66,6 +66,7 @@ if (!function_exists('imatutu_get_color_css')) {
                 --color-primary: {$primary};
                 --color-secondary: {$secondary};
                 --color-accent: {$accent};
+                --color-surface: {$surface};
                 --color-bg-surface: {$surface};
                 --color-text: {$text};
             }
